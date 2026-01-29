@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Moltbot (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "Moltbot (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

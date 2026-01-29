@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Moltbot.CommandPalette/Moltbot.CommandPalette.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/Moltbot.Shared/Moltbot.Shared.csproj" />
+    <Project Path="src/Moltbot.Tray/Moltbot.Tray.csproj" />
+  </Folder>
+</Solution>
