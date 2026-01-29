@@ -702,7 +702,11 @@ public partial class App : Application
         if (_settingsWindow == null || _settingsWindow.IsClosed)
         {
             _settingsWindow = new SettingsWindow(_settings!);
-            _settingsWindow.Closed += (s, e) => _settingsWindow = null;
+            _settingsWindow.Closed += (s, e) => 
+            {
+                _settingsWindow.SettingsSaved -= OnSettingsSaved;
+                _settingsWindow = null;
+            };
             _settingsWindow.SettingsSaved += OnSettingsSaved;
         }
         _settingsWindow.Activate();
