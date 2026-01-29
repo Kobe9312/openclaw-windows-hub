@@ -1,13 +1,12 @@
-mode: ContinuousDeployment
-next-version: 1.0.0
+mode: ContinuousDelivery
+tag-prefix: 'v'
+assembly-versioning-scheme: MajorMinorPatch
+
 branches:
   main:
-    regex: ^master$|^main$
-    mode: ContinuousDeployment
-    tag: ''
+    regex: ^(master|main)$
+    label: ''
     increment: Patch
-  feature:
-    regex: ^features?[/-]
-    mode: ContinuousDeployment
-    tag: alpha
-    increment: Inherit
+
+ignore:
+  sha: []

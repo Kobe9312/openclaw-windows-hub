@@ -21,16 +21,13 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v3
+      uses: gittools/actions/gitversion/setup@v4
       with:
-        versionSpec: '6.x'
+        versionSpec: '6.4.x'
 
     - name: Determine Version
       id: gitversion
-      uses: gittools/actions/gitversion/execute@v3
-      with:
-        useConfigFile: true
-        configFilePath: GitVersion.yml
+      uses: gittools/actions/gitversion/execute@v4
 
     - name: Restore dependencies
       run: dotnet restore
@@ -83,7 +80,7 @@ jobs:
 
     - name: Sign Executable
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: azure/trusted-signing-action@v0
+      uses: azure/trusted-signing-action@v1
       with:
         azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -177,7 +174,7 @@ jobs:
         creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
 
     - name: Sign Installer
-      uses: azure/trusted-signing-action@v0
+      uses: azure/trusted-signing-action@v1
       with:
         azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
