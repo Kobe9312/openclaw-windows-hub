@@ -6,6 +6,8 @@ A Windows companion suite for [Moltbot](https://moltbot.com) - the AI-powered pe
 
 ![Molty - Windows Tray App](docs/molty1.png)
 
+![Molty - Command Palette](docs/molty2.png)
+
 ## Projects
 
 This monorepo contains three projects:

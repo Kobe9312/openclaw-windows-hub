@@ -149,6 +149,18 @@ jobs:
         name: moltbot-tray-win-arm64
         path: artifacts/tray-win-arm64
 
+    - name: Download win-x64 cmdpal artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: moltbot-commandpalette-x64
+        path: artifacts/cmdpal-x64
+
+    - name: Download win-arm64 cmdpal artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: moltbot-commandpalette-arm64
+        path: artifacts/cmdpal-arm64
+
     # Create ZIP files for Updatum auto-update (needs "win-x64" in filename)
     - name: Create Release ZIPs
       run: |
@@ -163,6 +175,18 @@ jobs:
       run: |
         mkdir publish
         copy artifacts/tray-win-x64/Moltbot.Tray.exe publish/
+        # Copy Command Palette extension for installer (use x64 for installer)
+        mkdir publish\cmdpal
+        $cmdpalPath = Get-ChildItem -Path "artifacts/cmdpal-x64" -Recurse -Directory | Where-Object { $_.Name -like "win-x64" } | Select-Object -First 1
+        if ($cmdpalPath) {
+          Copy-Item "$($cmdpalPath.FullName)\*" -Destination publish\cmdpal -Recurse
+        } else {
+          # Fallback: copy from the first subfolder that has AppxManifest.xml
+          $manifestFolder = Get-ChildItem -Path "artifacts/cmdpal-x64" -Recurse -Filter "AppxManifest.xml" | Select-Object -First 1
+          if ($manifestFolder) {
+            Copy-Item "$($manifestFolder.DirectoryName)\*" -Destination publish\cmdpal -Recurse
+          }
+        }
 
     - name: Build Installer (x64)
       run: |
