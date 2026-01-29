@@ -58,20 +58,25 @@ Modern Windows 11-style system tray companion that connects to your local Moltbo
 
 ### Mac Parity Status
 
-| Feature | Mac | Windows |
-|---------|-----|---------|
-| System tray icon | ✅ | ✅ |
-| Connection status | ✅ | ✅ |
-| Quick send hotkey | ✅ | ✅ |
-| Web chat window | ✅ | ✅ |
-| Toast notifications | ✅ | ✅ |
-| Auto-start | ✅ | ✅ |
-| Session display | ✅ | ✅ |
-| Channel health | ✅ | ✅ |
-| Channel control | ✅ | ✅ |
-| Modern UI styling | ✅ | ✅ |
-| Dark/Light mode | ✅ | ✅ |
-| Deep links | ✅ | ✅ |
+| Feature | Mac | Windows | Notes |
+|---------|-----|---------|-------|
+| System tray icon | ✅ | ✅ | |
+| Connection status | ✅ | ✅ | |
+| Quick send hotkey | ✅ | ✅ | |
+| Web chat window | ✅ | ✅ | |
+| Toast notifications | ✅ | ✅ | |
+| Auto-start | ✅ | ✅ | |
+| Session display | ✅ | ✅ | |
+| Channel health | ✅ | ✅ | |
+| Channel control | ✅ | ✅ | |
+| Modern UI styling | ✅ | ✅ | |
+| Dark/Light mode | ✅ | ✅ | |
+| Deep links (moltbot://) | ✅ | ✅ | Fully tested with IPC forwarding |
+| Menu bar icon variants | ✅ | ⚠️ | Mac has template icons; Windows uses pixel art |
+| Native share sheet | ✅ | ❌ | Mac-specific feature |
+| Spotlight integration | ✅ | ✅ | PowerToys Command Palette covers this |
+| Keyboard navigation in menu | ✅ | ❌ | Modern menu doesn't support arrow keys yet |
+| Activity indicator animation | ✅ | ⚠️ | Windows has badge dot, no animation |
 
 ### Deep Links
 
