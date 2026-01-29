@@ -159,33 +159,39 @@ public partial class App : Application
 
     private async void ShowTrayMenuPopup()
     {
-        // Close any existing menu
-        if (_trayMenuWindow != null)
+        try
         {
-            try { _trayMenuWindow.Close(); } catch { }
-            _trayMenuWindow = null;
-        }
-
-        // Pre-fetch latest data before showing menu
-        if (_gatewayClient != null && _currentStatus == ConnectionStatus.Connected)
-        {
-            try
+            // Close any existing menu
+            if (_trayMenuWindow != null)
             {
-                _ = _gatewayClient.CheckHealthAsync();
-                _ = _gatewayClient.RequestSessionsAsync();
-                _ = _gatewayClient.RequestUsageAsync();
-                await Task.Delay(150); // Brief wait for data
+                try { _trayMenuWindow.Close(); } catch { }
+                _trayMenuWindow = null;
             }
-            catch { /* ignore - show cached data */ }
+
+            // Pre-fetch latest data before showing menu (fire and forget, don't wait)
+            if (_gatewayClient != null && _currentStatus == ConnectionStatus.Connected)
+            {
+                try
+                {
+                    _ = _gatewayClient.CheckHealthAsync();
+                    _ = _gatewayClient.RequestSessionsAsync();
+                    _ = _gatewayClient.RequestUsageAsync();
+                }
+                catch { /* ignore */ }
+            }
+
+            _trayMenuWindow = new TrayMenuWindow();
+            _trayMenuWindow.MenuItemClicked += OnTrayMenuItemClicked;
+            _trayMenuWindow.Closed += (s, e) => _trayMenuWindow = null;
+
+            BuildTrayMenuPopup(_trayMenuWindow);
+            _trayMenuWindow.SizeToContent();
+            _trayMenuWindow.ShowAtCursor();
         }
-
-        _trayMenuWindow = new TrayMenuWindow();
-        _trayMenuWindow.MenuItemClicked += OnTrayMenuItemClicked;
-        _trayMenuWindow.Closed += (s, e) => _trayMenuWindow = null;
-
-        BuildTrayMenuPopup(_trayMenuWindow);
-        _trayMenuWindow.SizeToContent();
-        _trayMenuWindow.ShowAtCursor();
+        catch (Exception ex)
+        {
+            Logger.Error($"Failed to show tray menu: {ex.Message}");
+        }
     }
 
     private void OnTrayMenuItemClicked(object? sender, string action)
