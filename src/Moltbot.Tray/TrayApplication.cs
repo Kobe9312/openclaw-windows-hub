@@ -31,6 +31,7 @@ public class TrayApplication : ApplicationContext
     private readonly Dictionary<string, AgentActivity> _sessionActivities = new();
     private string? _displayedSessionKey;
     private DateTime _lastSessionSwitch = DateTime.MinValue;
+    private DateTime _lastCheckTime = DateTime.Now;
     private static readonly TimeSpan SessionSwitchDebounce = TimeSpan.FromSeconds(3);
 
     // Menu items for dynamic updates
@@ -195,7 +196,7 @@ public class TrayApplication : ApplicationContext
         Logger.Info("Building modern menu...");
 
         // Brand Header - big lobster!
-        _modernMenu.AddBrandHeader("🦞", "Molty");
+        _modernMenu.AddBrandHeader("🦞", "Molty", "Made with 🦞 love by Scott Hanselman and Molty");
 
         // Status - use simple bullets that we can color
         var (statusIcon, statusText, statusColor) = _currentStatus switch
@@ -480,11 +481,13 @@ public class TrayApplication : ApplicationContext
 
     private void OnChannelHealthUpdated(object? sender, ChannelHealth[] channels)
     {
+        _lastCheckTime = DateTime.Now;
         _syncContext?.Post(_ => UpdateChannelHealth(channels), null);
     }
 
     private void OnSessionsUpdated(object? sender, SessionInfo[] sessions)
     {
+        _lastCheckTime = DateTime.Now;
         _syncContext?.Post(_ => UpdateSessions(sessions), null);
     }
 
@@ -508,6 +511,11 @@ public class TrayApplication : ApplicationContext
             var tooltip = _currentActivity?.Kind != ActivityKind.Idle && !string.IsNullOrEmpty(_currentActivity?.DisplayText)
                 ? $"Moltbot — {_currentActivity.DisplayText}"
                 : $"Moltbot — {status}";
+            
+            // Add last check time (culture-aware)
+            var checkTime = _lastCheckTime.ToShortTimeString();
+            tooltip = $"{tooltip}\nLast check: {checkTime}";
+            
             _notifyIcon.Text = tooltip.Length > 63 ? tooltip[..63] : tooltip;
         }
 

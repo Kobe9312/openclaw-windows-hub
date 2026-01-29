@@ -43,9 +43,9 @@ public partial class SettingsDialog : ModernForm
     private void InitializeComponent()
     {
         Text = "Settings — Moltbot Tray";
-        Size = new Size(480, 560);
+        Size = new Size(480, 600);
         ShowInTaskbar = false;
-        AutoScroll = true;
+        AutoScroll = false;
         Icon = IconHelper.GetLobsterIcon();
 
         var y = 16;
@@ -169,6 +169,20 @@ public partial class SettingsDialog : ModernForm
 
         y += 90;
 
+        // --- About Section ---
+        var aboutLabel = CreateModernLabel("Made with 🦞 love by Scott Hanselman and Molty", isSubtle: true);
+        aboutLabel.Font = new Font("Segoe UI", 8.5F);
+        aboutLabel.Location = new Point(16, y);
+        aboutLabel.AutoSize = true;
+        aboutLabel.Cursor = Cursors.Hand;
+        aboutLabel.Click += (_, _) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "https://github.com/shanselman/moltbot-windows-hub",
+            UseShellExecute = true
+        });
+
+        y += 30;
+
         // --- Buttons ---
         _cancelButton = CreateModernButton("Cancel");
         _cancelButton.Location = new Point(Width - 116, y);
@@ -191,7 +205,7 @@ public partial class SettingsDialog : ModernForm
             startupHeader, _autoStartCheckBox, _globalHotkeyCheckBox,
             notifyHeader, _showNotificationsCheckBox, soundLabel, _notificationSoundComboBox, _testNotificationButton,
             filterLabel, _notifyFilterPanel,
-            _okButton, _cancelButton
+            aboutLabel, _okButton, _cancelButton
         });
     }
 

@@ -46,6 +46,9 @@ public class ModernTrayMenu : Form
     private const int Padding = 16;    // More padding
     private const int CornerRadius = 8;
 
+    private readonly ToolTip _toolTip = new() { InitialDelay = 400, ReshowDelay = 100 };
+    private int _lastTooltipIndex = -1;
+
     public event EventHandler<string>? MenuItemClicked;
 
     public ModernTrayMenu()
@@ -127,7 +130,7 @@ public class ModernTrayMenu : Form
 
     public void ClearItems() => _items.Clear();
 
-    public void AddBrandHeader(string icon, string text)
+    public void AddBrandHeader(string icon, string text, string? tooltip = null)
     {
         _items.Add(new ModernMenuItem
         {
@@ -137,7 +140,8 @@ public class ModernTrayMenu : Form
             Enabled = false,
             IsHeader = true,
             IsBrandHeader = true,
-            IsSeparator = false
+            IsSeparator = false,
+            Tooltip = tooltip
         });
     }
 
@@ -339,6 +343,7 @@ public class ModernTrayMenu : Form
     {
         int y = Padding;
         int newHover = -1;
+        int tooltipIndex = -1;
 
         for (int i = 0; i < _items.Count; i++)
         {
@@ -353,6 +358,16 @@ public class ModernTrayMenu : Form
             else
                 itemHeight = ItemHeight;
 
+            // Check if mouse is over this item
+            if (e.Y >= y && e.Y < y + itemHeight)
+            {
+                // Show tooltip for brand header
+                if (item.IsBrandHeader && !string.IsNullOrEmpty(item.Tooltip))
+                {
+                    tooltipIndex = i;
+                }
+            }
+
             // Allow hover on non-separators that are either:
             // - Not headers and enabled, OR
             // - Headers with an ID (clickable headers like Sessions)
@@ -364,10 +379,23 @@ public class ModernTrayMenu : Form
                 if (e.Y >= y && e.Y < y + itemHeight)
                 {
                     newHover = i;
-                    break;
                 }
             }
             y += itemHeight;
+        }
+
+        // Update tooltip
+        if (tooltipIndex != _lastTooltipIndex)
+        {
+            _lastTooltipIndex = tooltipIndex;
+            if (tooltipIndex >= 0)
+            {
+                _toolTip.SetToolTip(this, _items[tooltipIndex].Tooltip);
+            }
+            else
+            {
+                _toolTip.SetToolTip(this, null);
+            }
         }
 
         if (newHover != _hoveredIndex)
@@ -431,5 +459,6 @@ public class ModernTrayMenu : Form
         public bool IsSeparator { get; set; }
         public bool IsHeader { get; set; }
         public bool IsBrandHeader { get; set; }
+        public string? Tooltip { get; set; }
     }
 }

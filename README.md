@@ -2,6 +2,8 @@
 
 A Windows companion suite for [Moltbot](https://moltbot.com) - the AI-powered personal assistant.
 
+*Made with 🦞 love by Scott Hanselman and Molty*
+
 ![Molty - Windows Tray App](docs/molty1.png)
 
 ## Projects
@@ -67,7 +69,7 @@ Comparing against [moltbot-menubar](https://github.com/magimetal/moltbot-menubar
 | PID display | ✅ | ❌ | Mac shows gateway PID |
 | Channel status | ✅ | ✅ | Mac: Discord / Win: Telegram+WhatsApp |
 | Sessions count | ✅ | ✅ | |
-| Last check timestamp | ✅ | ❌ | |
+| Last check timestamp | ✅ | ✅ | Shown in tray tooltip |
 | Gateway start/stop/restart | ✅ | ❌ | Mac controls gateway process |
 | View Logs | ✅ | ✅ | |
 | Open Web UI | ✅ | ✅ | |
