@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace MoltbotTray;
 
-public partial class QuickSendDialog : Form
+public partial class QuickSendDialog : ModernForm
 {
     private TextBox _messageTextBox = null!;
     private Button _sendButton = null!;
@@ -20,85 +20,52 @@ public partial class QuickSendDialog : Form
 
     private void InitializeComponent()
     {
-        // Form properties
         Text = "Quick Send — Moltbot";
-        Size = new Size(500, 220);
-        StartPosition = FormStartPosition.CenterScreen;
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
-        MinimizeBox = false;
+        Size = new Size(520, 300);
         ShowInTaskbar = true;
-        TopMost = true; // Always on top when opened via hotkey
+        TopMost = true;
         Icon = IconHelper.GetLobsterIcon();
 
-        // Label
-        var label = new Label
-        {
-            Text = "Send a message to Moltbot:",
-            Location = new Point(12, 12),
-            Size = new Size(460, 20),
-            Font = new Font("Segoe UI", 9.5F, FontStyle.Regular)
-        };
+        // Header label
+        var label = CreateModernLabel("Send a message to Moltbot:");
+        label.Location = new Point(20, 20);
+        label.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+        label.ForeColor = AccentColor;
 
         // Message text box
-        _messageTextBox = new TextBox
-        {
-            Location = new Point(12, 36),
-            Size = new Size(460, 90),
-            Multiline = true,
-            ScrollBars = ScrollBars.Vertical,
-            Font = new Font("Segoe UI", 10F, FontStyle.Regular),
-            AcceptsReturn = false // Enter sends, Shift+Enter for newline
-        };
+        _messageTextBox = CreateModernTextBox();
+        _messageTextBox.Location = new Point(20, 52);
+        _messageTextBox.Size = new Size(464, 110);
+        _messageTextBox.Multiline = true;
+        _messageTextBox.ScrollBars = ScrollBars.Vertical;
+        _messageTextBox.AcceptsReturn = false;
+        _messageTextBox.Font = new Font("Segoe UI", 10.5f);
 
-        // Hint label
-        _hintLabel = new Label
-        {
-            Text = "Enter to send · Esc to cancel · Shift+Enter for new line",
-            Location = new Point(12, 132),
-            Size = new Size(300, 18),
-            Font = new Font("Segoe UI", 8F, FontStyle.Regular),
-            ForeColor = Color.Gray
-        };
-
-        // Send button
-        _sendButton = new Button
-        {
-            Text = "&Send",
-            Location = new Point(316, 148),
-            Size = new Size(75, 28),
-            UseVisualStyleBackColor = true,
-            Font = new Font("Segoe UI", 9F, FontStyle.Regular)
-        };
+        // Buttons row (below text box)
+        _sendButton = CreateModernButton("Send", isPrimary: true);
+        _sendButton.Location = new Point(394, 172);
+        _sendButton.Size = new Size(90, 32);
         _sendButton.Click += OnSendClick;
 
-        // Cancel button
-        _cancelButton = new Button
-        {
-            Text = "&Cancel",
-            Location = new Point(397, 148),
-            Size = new Size(75, 28),
-            UseVisualStyleBackColor = true,
-            Font = new Font("Segoe UI", 9F, FontStyle.Regular)
-        };
+        _cancelButton = CreateModernButton("Cancel");
+        _cancelButton.Location = new Point(296, 172);
+        _cancelButton.Size = new Size(90, 32);
         _cancelButton.Click += OnCancelClick;
 
-        // Set dialog buttons
+        // Hint label (below buttons with more space)
+        _hintLabel = CreateModernLabel("Enter to send · Esc to cancel · Shift+Enter for new line", isSubtle: true);
+        _hintLabel.Location = new Point(20, 220);
+        _hintLabel.Font = new Font("Segoe UI", 8.5F);
+
         AcceptButton = _sendButton;
         CancelButton = _cancelButton;
 
-        // Add controls
-        Controls.Add(label);
-        Controls.Add(_messageTextBox);
-        Controls.Add(_hintLabel);
-        Controls.Add(_sendButton);
-        Controls.Add(_cancelButton);
+        Controls.AddRange(new Control[] { label, _messageTextBox, _sendButton, _cancelButton, _hintLabel });
 
-        // Focus the text box on show
         Shown += (_, _) =>
         {
             _messageTextBox.Focus();
-            Activate(); // Ensure window is focused when opened via hotkey
+            Activate();
         };
     }
 
@@ -109,7 +76,6 @@ public partial class QuickSendDialog : Form
             _messageTextBox.Focus();
             return;
         }
-
         DialogResult = DialogResult.OK;
         Close();
     }
@@ -122,13 +88,11 @@ public partial class QuickSendDialog : Form
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
-        // Ctrl+Enter or Enter (without Shift) as send
         if (keyData == (Keys.Control | Keys.Enter) || keyData == Keys.Enter)
         {
             OnSendClick(null, EventArgs.Empty);
             return true;
         }
-
         return base.ProcessCmdKey(ref msg, keyData);
     }
 }

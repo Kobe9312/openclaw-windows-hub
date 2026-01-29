@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ public class TrayApplication : ApplicationContext
 {
     private NotifyIcon? _notifyIcon;
     private ContextMenuStrip? _contextMenu;
+    private ModernTrayMenu? _modernMenu;
     private MoltbotGatewayClient? _gatewayClient;
     private SettingsManager? _settings;
     private System.Windows.Forms.Timer? _healthCheckTimer;
@@ -40,6 +42,11 @@ public class TrayApplication : ApplicationContext
     private readonly List<ToolStripItem> _channelItems = new();
     private readonly List<ToolStripItem> _sessionItems = new();
 
+    // Channel and session data for modern menu
+    private ChannelHealth[] _lastChannels = Array.Empty<ChannelHealth>();
+    private SessionInfo[] _lastSessions = Array.Empty<SessionInfo>();
+    private GatewayUsageInfo? _lastUsage;
+
     private readonly string[] _startupArgs;
 
     // P/Invoke for proper icon cleanup
@@ -51,13 +58,27 @@ public class TrayApplication : ApplicationContext
         _startupArgs = args ?? Array.Empty<string>();
         _syncContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
         Logger.Info("Application starting");
-        InitializeComponent();
-        InitializeAsync();
+        try
+        {
+            InitializeComponent();
+            InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Failed to initialize: {ex}");
+            throw;
+        }
     }
 
     private void InitializeComponent()
     {
         _settings = new SettingsManager();
+        
+        // First-run check: show welcome if no token configured
+        if (string.IsNullOrWhiteSpace(_settings.Token))
+        {
+            ShowFirstRunWelcome();
+        }
         
         // Register toast activation handler
         ToastNotificationManagerCompat.OnActivated += OnToastActivated;
@@ -113,14 +134,18 @@ public class TrayApplication : ApplicationContext
         _contextMenu.Items.Add("Open Log File", null, OnOpenLogFile);
         _contextMenu.Items.Add("Exit", null, OnExit);
 
-        // Tray icon
+        // Modern tray menu (Windows 11 style)
+        _modernMenu = new ModernTrayMenu();
+        _modernMenu.MenuItemClicked += OnModernMenuItemClicked;
+
+        // Tray icon - use modern menu on right-click
         _notifyIcon = new NotifyIcon
         {
             Icon = CreateStatusIcon(ConnectionStatus.Disconnected),
-            ContextMenuStrip = _contextMenu,
             Text = "Moltbot Tray — Disconnected",
             Visible = true
         };
+        _notifyIcon.MouseClick += OnTrayIconClick;
         _notifyIcon.DoubleClick += OnDoubleClick;
 
         // Health check timer (30s)
@@ -131,10 +156,241 @@ public class TrayApplication : ApplicationContext
         _sessionPollTimer = new System.Windows.Forms.Timer { Interval = 60000, Enabled = true };
         _sessionPollTimer.Tick += OnSessionPoll;
 
-        // Global hotkey: Ctrl+Shift+Space → Quick Send
+        // Global hotkey: Ctrl+Alt+Shift+C → Quick Send
         _globalHotkey = new GlobalHotkey();
         _globalHotkey.HotkeyPressed += (_, _) => OnQuickSend(null, EventArgs.Empty);
         _globalHotkey.Register();
+    }
+
+    private async void OnTrayIconClick(object? sender, MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Right || e.Button == MouseButtons.Left)
+        {
+            // Request fresh data before showing menu
+            if (_gatewayClient != null && _currentStatus == ConnectionStatus.Connected)
+            {
+                try
+                {
+                    // Fire off requests - don't await, just let them update the cache
+                    _ = _gatewayClient.CheckHealthAsync();
+                    _ = _gatewayClient.RequestSessionsAsync();
+                    _ = _gatewayClient.RequestUsageAsync();
+                    // Small delay to let responses arrive
+                    await Task.Delay(150);
+                }
+                catch { /* ignore - show cached data */ }
+            }
+            
+            // Build and show modern menu
+            BuildModernMenu();
+            _modernMenu?.ShowAtCursor();
+        }
+    }
+
+    private void BuildModernMenu()
+    {
+        if (_modernMenu == null) return;
+
+        _modernMenu.ClearItems();
+        Logger.Info("Building modern menu...");
+
+        // Brand Header - big lobster!
+        _modernMenu.AddBrandHeader("🦞", "Molty");
+
+        // Status - use simple bullets that we can color
+        var (statusIcon, statusText, statusColor) = _currentStatus switch
+        {
+            ConnectionStatus.Connected => ("●", "Connected", Color.FromArgb(46, 204, 113)),
+            ConnectionStatus.Connecting => ("●", "Connecting...", Color.FromArgb(241, 196, 15)),
+            ConnectionStatus.Error => ("●", "Error", Color.FromArgb(231, 76, 60)),
+            _ => ("○", "Disconnected", Color.Gray)
+        };
+        _modernMenu.AddStatusItem("status", statusIcon, "Gateway", statusText, statusColor);
+
+        // Activity (if active)
+        if (_currentActivity?.Kind != ActivityKind.Idle && !string.IsNullOrEmpty(_currentActivity?.DisplayText))
+        {
+            _modernMenu.AddItem("activity", "▶", _currentActivity.DisplayText, enabled: false);
+        }
+
+        // Usage (if available)
+        if (_lastUsage != null)
+        {
+            _modernMenu.AddItem("usage", "◆", _lastUsage.DisplayText, enabled: false);
+        }
+
+        _modernMenu.AddSeparator();
+
+        // Sessions (if any) - show meaningful info, clickable to go to /sessions
+        if (_lastSessions.Length > 0)
+        {
+            _modernMenu.AddItem("sessions", "◈", "Sessions", isHeader: true);  // Clickable header!
+            foreach (var session in _lastSessions.Take(5))
+            {
+                // Extract session type from key like "agent:main:cron:uuid" or "agent:main:subagent:uuid"
+                var parts = session.Key.Split(':');
+                var sessionType = parts.Length >= 3 ? parts[2] : "session";
+                var displayName = sessionType switch
+                {
+                    "main" => "Main Agent",
+                    "cron" => "Scheduled Task",
+                    "subagent" => "Sub-Agent",
+                    _ => sessionType.Length > 0 ? char.ToUpper(sessionType[0]) + sessionType[1..] : "Session"
+                };
+                
+                // Add model if available
+                if (!string.IsNullOrEmpty(session.Model))
+                    displayName += $" ({session.Model})";
+                else if (!string.IsNullOrEmpty(session.Channel))
+                    displayName += $" · {session.Channel}";
+                    
+                var icon = session.IsMain ? "★" : "·";
+                _modernMenu.AddItem($"session:{session.Key}", icon, displayName, enabled: false);
+            }
+            if (_lastSessions.Length > 5)
+                _modernMenu.AddItem("", "", $"+{_lastSessions.Length - 5} more...", enabled: false);
+            _modernMenu.AddSeparator();
+        }
+
+        // Channels (if any)
+        if (_lastChannels.Length > 0)
+        {
+            _modernMenu.AddItem("", "◉", "Channels", isHeader: true);
+            foreach (var ch in _lastChannels)
+            {
+                var rawStatus = ch.Status?.ToLowerInvariant() ?? "";
+                
+                // Normalize status display
+                // READY = configured and verified (linked or probe ok), ready to receive messages
+                // IDLE = configured but not verified (needs setup)
+                // ON = actively running/processing
+                var (statusLabel, color) = rawStatus switch
+                {
+                    "ok" or "connected" or "running" or "active" => ("ON", Color.FromArgb(46, 204, 113)),
+                    "ready" => ("READY", Color.FromArgb(46, 204, 113)),
+                    "stopped" or "idle" or "paused" => ("IDLE", Color.FromArgb(241, 196, 15)),
+                    "configured" or "pending" => ("IDLE", Color.FromArgb(241, 196, 15)),
+                    "error" or "disconnected" or "failed" => ("ERROR", Color.FromArgb(231, 76, 60)),
+                    "not configured" or "unconfigured" => ("N/A", Color.Gray),
+                    _ => ("OFF", Color.Gray)
+                };
+                _modernMenu.AddStatusItem($"channel:{ch.Name}", "○", char.ToUpper(ch.Name[0]) + ch.Name[1..], statusLabel, color);
+            }
+            _modernMenu.AddSeparator();
+        }
+
+        // Actions - use simple shapes we can color
+        _modernMenu.AddItem("dashboard", "◐", "Open Dashboard");
+        _modernMenu.AddItem("webchat", "◉", "Open Web Chat");
+        _modernMenu.AddItem("quicksend", "▷", "Quick Send...");
+        _modernMenu.AddItem("cron", "⏱", "Cron Jobs");
+        _modernMenu.AddItem("history", "≡", "Notification History");
+        _modernMenu.AddItem("servicehealth", "♥", "Service Health...");
+
+        _modernMenu.AddSeparator();
+
+        // Settings
+        _modernMenu.AddItem("settings", "⚙", "Settings...");
+        _modernMenu.AddItem("autostart", _settings?.AutoStart == true ? "✓" : "○", 
+            _settings?.AutoStart == true ? "Auto-start: On" : "Auto-start: Off");
+        _modernMenu.AddItem("logs", "▤", "Open Log File");
+
+        _modernMenu.AddSeparator();
+        _modernMenu.AddItem("exit", "✕", "Exit");
+    }
+
+    private void OnModernMenuItemClicked(object? sender, string id)
+    {
+        switch (id)
+        {
+            case "status":
+                OnShowStatusDetail(null, EventArgs.Empty);
+                break;
+            case "dashboard":
+                OnOpenDashboard(null, EventArgs.Empty);
+                break;
+            case "webchat":
+                OnOpenWebUI(null, EventArgs.Empty);
+                break;
+            case "quicksend":
+                OnQuickSend(null, EventArgs.Empty);
+                break;
+            case "history":
+                OnNotificationHistory(null, EventArgs.Empty);
+                break;
+            case "servicehealth":
+                OnShowStatusDetail(null, EventArgs.Empty);
+                break;
+            case "sessions":
+                OpenDashboardPath("/sessions");
+                break;
+            case "cron":
+                OpenDashboardPath("/cron");
+                break;
+            case "settings":
+                OnSettings(null, EventArgs.Empty);
+                break;
+            case "autostart":
+                OnToggleAutoStart(null, EventArgs.Empty);
+                break;
+            case "logs":
+                OnOpenLogFile(null, EventArgs.Empty);
+                break;
+            case "exit":
+                OnExit(null, EventArgs.Empty);
+                break;
+            default:
+                // Handle channel toggle: "channel:telegram" etc.
+                if (id.StartsWith("channel:"))
+                {
+                    var channelName = id[8..]; // Remove "channel:" prefix
+                    _ = ToggleChannelAsync(channelName);
+                }
+                break;
+        }
+    }
+
+    private void OpenDashboardPath(string path)
+    {
+        var dashboardUrl = GetDashboardUrl().TrimEnd('/') + path;
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = dashboardUrl,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Instance.Error($"Failed to open dashboard path {path}", ex);
+        }
+    }
+
+    private async Task ToggleChannelAsync(string channelName)
+    {
+        if (_gatewayClient == null) return;
+
+        // Find the channel to check its current status
+        var channel = _lastChannels.FirstOrDefault(c => c.Name.Equals(channelName, StringComparison.OrdinalIgnoreCase));
+        if (channel == null) return;
+
+        var isRunning = channel.Status.ToLowerInvariant() is "ok" or "connected" or "running";
+        
+        if (isRunning)
+        {
+            Logger.Info($"Stopping channel: {channelName}");
+            await _gatewayClient.StopChannelAsync(channelName);
+        }
+        else
+        {
+            Logger.Info($"Starting channel: {channelName}");
+            await _gatewayClient.StartChannelAsync(channelName);
+        }
+
+        // Request fresh health data after a short delay
+        await Task.Delay(500);
+        await _gatewayClient.CheckHealthAsync();
     }
 
     private async void InitializeAsync()
@@ -308,6 +564,9 @@ public class TrayApplication : ApplicationContext
 
     private void UpdateChannelHealth(ChannelHealth[] channels)
     {
+        // Store for modern menu
+        _lastChannels = channels;
+
         // Remove old channel items
         foreach (var item in _channelItems)
             _contextMenu?.Items.Remove(item);
@@ -341,6 +600,9 @@ public class TrayApplication : ApplicationContext
 
     private void UpdateSessions(SessionInfo[] sessions)
     {
+        // Store for modern menu
+        _lastSessions = sessions;
+
         // Log session data for debugging
         Logger.Info($"UpdateSessions: {sessions.Length} sessions");
         foreach (var s in sessions)
@@ -383,6 +645,9 @@ public class TrayApplication : ApplicationContext
 
     private void UpdateUsage(GatewayUsageInfo usage)
     {
+        // Store for modern menu
+        _lastUsage = usage;
+
         if (_usageItem != null)
         {
             _usageItem.Text = $"📊 {usage.DisplayText}";
@@ -704,6 +969,24 @@ public class TrayApplication : ApplicationContext
         }
     }
 
+    private void ShowFirstRunWelcome()
+    {
+        var dashboardUrl = _settings!.GatewayUrl
+            .Replace("ws://", "http://")
+            .Replace("wss://", "https://");
+            
+        using var welcome = new WelcomeDialog(dashboardUrl);
+        if (welcome.ShowDialog() == DialogResult.OK)
+        {
+            // User clicked "Open Settings"
+            using var settings = new SettingsDialog(_settings);
+            if (settings.ShowDialog() == DialogResult.OK)
+            {
+                _settings.Save();
+            }
+        }
+    }
+
     private void OnToggleAutoStart(object? sender, EventArgs e)
     {
         var menuItem = (ToolStripMenuItem)sender!;
@@ -789,6 +1072,7 @@ public class TrayApplication : ApplicationContext
             _healthCheckTimer?.Dispose();
             _sessionPollTimer?.Dispose();
             _gatewayClient?.Dispose();
+            _modernMenu?.Dispose();
             _notifyIcon?.Dispose();
             _contextMenu?.Dispose();
             Logger.Shutdown();
@@ -802,5 +1086,3 @@ public class TrayApplication : ApplicationContext
         base.ExitThreadCore();
     }
 }
-
-

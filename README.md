@@ -2,6 +2,8 @@
 
 A Windows companion suite for [Moltbot](https://moltbot.com) - the AI-powered personal assistant.
 
+![Molty - Windows Tray App](docs/molty1.png)
+
 ## Projects
 
 This monorepo contains three projects:
@@ -29,19 +31,30 @@ dotnet build
 dotnet run --project src/Moltbot.Tray
 ```
 
-## 📦 Moltbot.Tray
+## 📦 Moltbot.Tray (Molty)
 
-Windows system tray companion that connects to your local Moltbot gateway.
+Modern Windows 11-style system tray companion that connects to your local Moltbot gateway.
 
 ### Features
-- 🦞 Lobster icon in system tray (connected/disconnected states)
-- 💬 Quick Send - Send messages via global hotkey (Ctrl+Alt+Shift+C)
-- 🔄 Auto-updates from GitHub Releases
-- 🌐 Web Chat - Embedded chat window
-- 📊 Status Display - View sessions and channels
-- 🔔 Toast Notifications - Clickable Windows notifications
-- 🚀 Auto-start with Windows
-- ⚙️ Settings management
+- 🦞 **Lobster branding** - Pixel-art lobster tray icon with status colors
+- 🎨 **Modern UI** - Windows 11 flyout menu with dark/light mode support
+- 💬 **Quick Send** - Send messages via global hotkey (Ctrl+Alt+Shift+C)
+- 🔄 **Auto-updates** - Automatic updates from GitHub Releases
+- 🌐 **Web Chat** - Embedded chat window with WebView2
+- 📊 **Live Status** - Real-time sessions, channels, and usage display
+- 🔔 **Toast Notifications** - Clickable Windows notifications with filters
+- 📡 **Channel Control** - Start/stop Telegram & WhatsApp from the menu
+- ⏱ **Cron Jobs** - Quick access to scheduled tasks
+- 🚀 **Auto-start** - Launch with Windows
+- ⚙️ **Settings** - Full configuration dialog
+- 🎯 **First-run experience** - Welcome dialog guides new users
+
+### Menu Sections
+- **Status** - Gateway connection status with click-to-view details
+- **Sessions** - Active agent sessions (clickable → dashboard)
+- **Channels** - Telegram/WhatsApp status with toggle control
+- **Actions** - Dashboard, Web Chat, Quick Send, Cron Jobs, History
+- **Settings** - Configuration, auto-start, logs
 
 ### Mac Parity Status
 
@@ -55,6 +68,9 @@ Windows system tray companion that connects to your local Moltbot gateway.
 | Auto-start | ✅ | ✅ |
 | Session display | ✅ | ✅ |
 | Channel health | ✅ | ✅ |
+| Channel control | ✅ | ✅ |
+| Modern UI styling | ✅ | ✅ |
+| Dark/Light mode | ✅ | ✅ |
 | Deep links | ✅ | 🔄 |
 
 ## 📦 Moltbot.CommandPalette
@@ -81,6 +97,7 @@ Shared library containing:
 - `MoltbotGatewayClient` - WebSocket client for gateway protocol
 - `IMoltbotLogger` - Logging interface
 - Data models (SessionInfo, ChannelHealth, etc.)
+- Channel control (start/stop channels via gateway)
 
 ## Development
 
@@ -91,6 +108,8 @@ moltbot-windows-hub/
 │   ├── Moltbot.Shared/           # Shared gateway library
 │   ├── Moltbot.Tray/             # System tray app
 │   └── Moltbot.CommandPalette/   # PowerToys extension
+├── docs/
+│   └── molty1.png                # Screenshot
 ├── moltbot-windows-hub.sln
 ├── README.md
 ├── LICENSE
@@ -104,6 +123,13 @@ Settings are stored in:
 - Logs: `%LOCALAPPDATA%\MoltbotTray\moltbot-tray.log`
 
 Default gateway: `ws://localhost:18789`
+
+### First Run
+
+On first run without a token, Molty displays a welcome dialog that:
+1. Explains what's needed to get started
+2. Links to [documentation](https://docs.molt.bot/web/dashboard) for token setup
+3. Opens Settings to configure the connection
 
 ## License
 

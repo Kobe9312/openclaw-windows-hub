@@ -6,7 +6,7 @@ using Updatum;
 
 namespace MoltbotTray;
 
-public class DownloadProgressDialog : Form
+public class DownloadProgressDialog : ModernForm
 {
     private readonly UpdatumManager _updater;
     private readonly ProgressBar _progressBar;
@@ -17,41 +17,26 @@ public class DownloadProgressDialog : Form
         _updater = updater;
         _updater.PropertyChanged += UpdaterOnPropertyChanged;
 
-        Text = "Downloading Update - Moltbot Tray";
-        Size = new Size(400, 150);
-        StartPosition = FormStartPosition.CenterScreen;
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
-        MinimizeBox = false;
-        ControlBox = false; // No close button during download
-        Icon = SystemIcons.Information;
+        Text = "Downloading Update — Moltbot Tray";
+        Size = new Size(420, 160);
+        ControlBox = false;
+        Icon = IconHelper.GetLobsterIcon();
 
-        var titleLabel = new Label
-        {
-            Text = "🦞 Downloading update...",
-            Font = new Font(Font.FontFamily, 10, FontStyle.Bold),
-            Location = new Point(20, 20),
-            AutoSize = true
-        };
+        var titleLabel = CreateModernLabel("🦞 Downloading update...");
+        titleLabel.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+        titleLabel.ForeColor = AccentColor;
+        titleLabel.Location = new Point(20, 20);
         Controls.Add(titleLabel);
 
-        _progressBar = new ProgressBar
-        {
-            Location = new Point(20, 55),
-            Size = new Size(340, 25),
-            Minimum = 0,
-            Maximum = 100,
-            Style = ProgressBarStyle.Continuous
-        };
+        _progressBar = CreateModernProgressBar();
+        _progressBar.Location = new Point(20, 60);
+        _progressBar.Size = new Size(364, 8);
         Controls.Add(_progressBar);
 
-        _progressLabel = new Label
-        {
-            Text = "Starting download...",
-            Location = new Point(20, 85),
-            Size = new Size(340, 20),
-            TextAlign = ContentAlignment.MiddleCenter
-        };
+        _progressLabel = CreateModernLabel("Starting download...", isSubtle: true);
+        _progressLabel.Location = new Point(20, 78);
+        _progressLabel.Size = new Size(364, 24);
+        _progressLabel.TextAlign = ContentAlignment.MiddleCenter;
         Controls.Add(_progressLabel);
     }
 
@@ -60,13 +45,9 @@ public class DownloadProgressDialog : Form
         if (e.PropertyName == nameof(UpdatumManager.DownloadedPercentage))
         {
             if (InvokeRequired)
-            {
                 Invoke(() => UpdateProgress());
-            }
             else
-            {
                 UpdateProgress();
-            }
         }
     }
 
@@ -82,3 +63,4 @@ public class DownloadProgressDialog : Form
         base.OnFormClosing(e);
     }
 }
+

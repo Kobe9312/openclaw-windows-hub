@@ -163,6 +163,54 @@ public class MoltbotGatewayClient : IDisposable
         catch { }
     }
 
+    /// <summary>Start a channel (telegram, whatsapp, etc).</summary>
+    public async Task<bool> StartChannelAsync(string channelName)
+    {
+        if (_webSocket?.State != WebSocketState.Open) return false;
+        try
+        {
+            var req = new
+            {
+                type = "req",
+                id = Guid.NewGuid().ToString(),
+                method = "channel.start",
+                @params = new { channel = channelName }
+            };
+            await SendRawAsync(JsonSerializer.Serialize(req));
+            _logger.Info($"Sent channel.start for {channelName}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Failed to start channel {channelName}", ex);
+            return false;
+        }
+    }
+
+    /// <summary>Stop a channel (telegram, whatsapp, etc).</summary>
+    public async Task<bool> StopChannelAsync(string channelName)
+    {
+        if (_webSocket?.State != WebSocketState.Open) return false;
+        try
+        {
+            var req = new
+            {
+                type = "req",
+                id = Guid.NewGuid().ToString(),
+                method = "channel.stop",
+                @params = new { channel = channelName }
+            };
+            await SendRawAsync(JsonSerializer.Serialize(req));
+            _logger.Info($"Sent channel.stop for {channelName}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Failed to stop channel {channelName}", ex);
+            return false;
+        }
+    }
+
     // --- Connection management ---
 
     private async Task ReconnectWithBackoffAsync()
@@ -594,6 +642,8 @@ public class MoltbotGatewayClient : IDisposable
             bool isConfigured = false;
             bool isLinked = false;
             bool probeOk = false;
+            bool hasError = false;
+            string? tokenSource = null;
             
             if (val.TryGetProperty("running", out var running))
                 isRunning = running.GetBoolean();
@@ -607,18 +657,27 @@ public class MoltbotGatewayClient : IDisposable
             // Check probe status for webhook-based channels like Telegram
             if (val.TryGetProperty("probe", out var probe) && probe.TryGetProperty("ok", out var ok))
                 probeOk = ok.GetBoolean();
+            // Check for errors
+            if (val.TryGetProperty("lastError", out var lastError) && lastError.ValueKind != JsonValueKind.Null)
+                hasError = true;
+            // Check token source (for Telegram - if configured, bot token was validated)
+            if (val.TryGetProperty("tokenSource", out var ts))
+                tokenSource = ts.GetString();
             
-            // Determine status string
+            // Determine status string - unified for parity between channels
+            // Key insight: if configured=true and no errors, the channel is ready
+            // - WhatsApp: linked=true means authenticated
+            // - Telegram: configured=true means bot token was validated
             if (val.TryGetProperty("status", out var status))
                 ch.Status = status.GetString() ?? "unknown";
+            else if (hasError)
+                ch.Status = "error";
             else if (isRunning)
                 ch.Status = "running";
-            else if (probeOk && isConfigured)
-                ch.Status = "ready";  // Webhook mode, bot is responding
-            else if (isLinked)
-                ch.Status = "linked";  // Authenticated but not running
-            else if (isConfigured)
-                ch.Status = "stopped";
+            else if (isConfigured && (probeOk || isLinked))
+                ch.Status = "ready";  // Explicitly verified ready
+            else if (isConfigured && !hasError)
+                ch.Status = "ready";  // Configured without errors = ready (token was validated at config time)
             else
                 ch.Status = "not configured";
             

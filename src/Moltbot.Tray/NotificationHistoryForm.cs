@@ -6,9 +6,9 @@ using System.Windows.Forms;
 namespace MoltbotTray;
 
 /// <summary>
-/// Shows recent notification history in a simple list view.
+/// Shows recent notification history in a modern styled list view.
 /// </summary>
-public class NotificationHistoryForm : Form
+public class NotificationHistoryForm : ModernForm
 {
     private ListView? _listView;
     private Button _clearButton = null!;
@@ -30,12 +30,10 @@ public class NotificationHistoryForm : Form
                 Type = type
             });
 
-            // Trim old entries
             while (_history.Count > MaxHistory)
                 _history.RemoveAt(0);
         }
 
-        // If window is open, refresh it
         _instance?.RefreshList();
     }
 
@@ -61,9 +59,9 @@ public class NotificationHistoryForm : Form
     private void InitializeComponent()
     {
         Text = "Notification History — Moltbot Tray";
-        Size = new Size(600, 450);
-        MinimumSize = new Size(400, 300);
-        StartPosition = FormStartPosition.CenterScreen;
+        Size = new Size(680, 500);
+        MinimumSize = new Size(480, 340);
+        FormBorderStyle = FormBorderStyle.Sizable;
         Icon = IconHelper.GetLobsterIcon();
 
         _listView = new ListView
@@ -71,41 +69,48 @@ public class NotificationHistoryForm : Form
             Dock = DockStyle.Fill,
             View = View.Details,
             FullRowSelect = true,
-            GridLines = true,
-            Font = new Font("Segoe UI", 9F)
+            GridLines = false,
+            Font = new Font("Segoe UI", 9.5F),
+            BackColor = SurfaceColor,
+            ForeColor = ForegroundColor,
+            BorderStyle = BorderStyle.None
         };
-        _listView.Columns.Add("Time", 130);
-        _listView.Columns.Add("Type", 80);
-        _listView.Columns.Add("Title", 150);
-        _listView.Columns.Add("Message", 300);
+        _listView.Columns.Add("Time", 140);
+        _listView.Columns.Add("Type", 85);
+        _listView.Columns.Add("Title", 160);
+        _listView.Columns.Add("Message", 320);
 
-        var buttonPanel = new FlowLayoutPanel
+        var buttonPanel = new Panel
         {
             Dock = DockStyle.Bottom,
-            Height = 40,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(5)
+            Height = 56,
+            BackColor = SurfaceColor,
+            Padding = new Padding(16, 12, 16, 12)
         };
 
-        _closeButton = new Button
-        {
-            Text = "&Close",
-            Size = new Size(75, 26),
-            Font = new Font("Segoe UI", 9F)
-        };
+        _closeButton = CreateModernButton("Close");
+        _closeButton.Size = new Size(90, 36);
         _closeButton.Click += (_, _) => Close();
 
-        _clearButton = new Button
-        {
-            Text = "C&lear All",
-            Size = new Size(85, 26),
-            Font = new Font("Segoe UI", 9F)
-        };
+        _clearButton = CreateModernButton("Clear All", isPrimary: true);
+        _clearButton.Size = new Size(100, 36);
         _clearButton.Click += (_, _) =>
         {
             lock (_history) _history.Clear();
             RefreshList();
         };
+
+        var buttonFlow = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Right,
+            FlowDirection = FlowDirection.RightToLeft,
+            AutoSize = true,
+            BackColor = Color.Transparent
+        };
+        buttonFlow.Controls.Add(_closeButton);
+        buttonFlow.Controls.Add(_clearButton);
+        
+        buttonPanel.Controls.Add(buttonFlow);
 
         buttonPanel.Controls.Add(_closeButton);
         buttonPanel.Controls.Add(_clearButton);
@@ -129,7 +134,6 @@ public class NotificationHistoryForm : Form
 
         lock (_history)
         {
-            // Show newest first
             for (int i = _history.Count - 1; i >= 0; i--)
             {
                 var entry = _history[i];
@@ -158,4 +162,5 @@ public class NotificationHistoryForm : Form
         public string Type { get; set; } = "";
     }
 }
+
 

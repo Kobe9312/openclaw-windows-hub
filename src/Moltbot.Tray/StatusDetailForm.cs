@@ -9,7 +9,7 @@ namespace MoltbotTray;
 /// <summary>
 /// Shows detailed gateway status, sessions, channels, and usage in a rich view.
 /// </summary>
-public class StatusDetailForm : Form
+public class StatusDetailForm : ModernForm
 {
     private RichTextBox _textBox = null!;
     private Button _refreshButton = null!;
@@ -45,44 +45,39 @@ public class StatusDetailForm : Form
     private void InitializeComponent()
     {
         Text = "Moltbot Status";
-        Size = new Size(520, 500);
-        MinimumSize = new Size(400, 350);
-        StartPosition = FormStartPosition.CenterScreen;
+        Size = new Size(540, 520);
+        MinimumSize = new Size(420, 380);
+        FormBorderStyle = FormBorderStyle.Sizable;
         Icon = IconHelper.GetLobsterIcon();
 
         _textBox = new RichTextBox
         {
             Dock = DockStyle.Fill,
             ReadOnly = true,
-            Font = new Font("Cascadia Code", 10F, FontStyle.Regular, GraphicsUnit.Point),
-            BackColor = Color.FromArgb(30, 30, 30),
-            ForeColor = Color.FromArgb(220, 220, 220),
+            Font = new Font("Cascadia Code", 10F),
+            BackColor = IsDarkMode ? Color.FromArgb(25, 25, 25) : Color.FromArgb(252, 252, 252),
+            ForeColor = ForegroundColor,
             BorderStyle = BorderStyle.None,
-            WordWrap = true
+            WordWrap = true,
+            Padding = new Padding(8)
         };
 
-        var buttonPanel = new FlowLayoutPanel
+        var buttonPanel = new Panel
         {
             Dock = DockStyle.Bottom,
-            Height = 40,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(5)
+            Height = 56,
+            BackColor = SurfaceColor,
+            Padding = new Padding(16, 12, 16, 12)
         };
 
-        _closeButton = new Button
-        {
-            Text = "&Close",
-            Size = new Size(75, 26),
-            Font = new Font("Segoe UI", 9F)
-        };
+        _closeButton = CreateModernButton("Close");
+        _closeButton.Size = new Size(90, 36);
+        _closeButton.Anchor = AnchorStyles.Right | AnchorStyles.Top;
         _closeButton.Click += (_, _) => Close();
 
-        _refreshButton = new Button
-        {
-            Text = "&Refresh",
-            Size = new Size(75, 26),
-            Font = new Font("Segoe UI", 9F)
-        };
+        _refreshButton = CreateModernButton("Refresh", isPrimary: true);
+        _refreshButton.Size = new Size(90, 36);
+        _refreshButton.Anchor = AnchorStyles.Right | AnchorStyles.Top;
         _refreshButton.Click += async (_, _) =>
         {
             if (_client != null)
@@ -94,8 +89,18 @@ public class StatusDetailForm : Form
             RefreshStatus();
         };
 
-        buttonPanel.Controls.Add(_closeButton);
-        buttonPanel.Controls.Add(_refreshButton);
+        // Use FlowLayoutPanel for proper button layout
+        var buttonFlow = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Right,
+            FlowDirection = FlowDirection.RightToLeft,
+            AutoSize = true,
+            BackColor = Color.Transparent
+        };
+        buttonFlow.Controls.Add(_closeButton);
+        buttonFlow.Controls.Add(_refreshButton);
+        
+        buttonPanel.Controls.Add(buttonFlow);
 
         Controls.Add(_textBox);
         Controls.Add(buttonPanel);
@@ -106,7 +111,7 @@ public class StatusDetailForm : Form
         var sb = new StringBuilder();
 
         // Header
-        sb.AppendLine("⚡ MOLTBOT STATUS");
+        sb.AppendLine("🦞 MOLTBOT STATUS");
         sb.AppendLine(new string('─', 40));
         sb.AppendLine();
 
@@ -154,7 +159,7 @@ public class StatusDetailForm : Form
         sb.AppendLine($"  Uptime:   {GetUptime()}");
         sb.AppendLine();
 
-        // Auto-start
+        // Settings
         sb.AppendLine("⚙️  SETTINGS");
         sb.AppendLine(new string('─', 40));
         sb.AppendLine($"  Auto-start:     {(_settings?.AutoStart == true ? "✅" : "❌")}");
@@ -180,4 +185,5 @@ public class StatusDetailForm : Form
         base.OnFormClosed(e);
     }
 }
+
 
