@@ -21,11 +21,17 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build
-      run: dotnet build --no-restore -c Debug
+    - name: Build Shared Library
+      run: dotnet build src/Moltbot.Shared -c Debug
+
+    - name: Build Tray App
+      run: dotnet build src/Moltbot.Tray -c Debug
+
+    - name: Build Tests
+      run: dotnet build tests/Moltbot.Shared.Tests -c Debug
 
     - name: Run Tests
-      run: dotnet test --no-build -c Debug --verbosity normal
+      run: dotnet test tests/Moltbot.Shared.Tests --no-build -c Debug --verbosity normal
 
   build:
     needs: test
@@ -76,13 +82,13 @@ jobs:
       run: dotnet restore src/Moltbot.CommandPalette
 
     - name: Build Command Palette Extension
-      run: dotnet build src/Moltbot.CommandPalette -c Release -p:Platform=${{ matrix.platform }}
+      run: dotnet build src/Moltbot.CommandPalette -c Debug -p:Platform=${{ matrix.platform }}
 
     - name: Upload Extension Artifact
       uses: actions/upload-artifact@v4
       with:
         name: moltbot-commandpalette-${{ matrix.platform }}
-        path: src/Moltbot.CommandPalette/bin/${{ matrix.platform }}/Release/
+        path: src/Moltbot.CommandPalette/bin/${{ matrix.platform }}/Debug/
 
   release:
     needs: [build, build-extension]
