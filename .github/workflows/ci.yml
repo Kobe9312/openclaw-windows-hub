@@ -171,26 +171,31 @@ jobs:
     - name: Install Inno Setup
       run: choco install innosetup -y
 
-    - name: Copy x64 exe for installer
+    - name: Build x64 Installer
       run: |
-        mkdir publish
-        copy artifacts/tray-win-x64/Moltbot.Tray.exe publish/
-        # Copy Command Palette extension for installer (use x64 for installer)
-        mkdir publish\cmdpal
-        $cmdpalPath = Get-ChildItem -Path "artifacts/cmdpal-x64" -Recurse -Directory | Where-Object { $_.Name -like "win-x64" } | Select-Object -First 1
-        if ($cmdpalPath) {
-          Copy-Item "$($cmdpalPath.FullName)\*" -Destination publish\cmdpal -Recurse
-        } else {
-          # Fallback: copy from the first subfolder that has AppxManifest.xml
-          $manifestFolder = Get-ChildItem -Path "artifacts/cmdpal-x64" -Recurse -Filter "AppxManifest.xml" | Select-Object -First 1
-          if ($manifestFolder) {
-            Copy-Item "$($manifestFolder.DirectoryName)\*" -Destination publish\cmdpal -Recurse
-          }
+        # Prepare x64 files
+        mkdir publish-x64
+        copy artifacts/tray-win-x64/Moltbot.Tray.exe publish-x64/
+        mkdir publish-x64\cmdpal
+        $manifestFolder = Get-ChildItem -Path "artifacts/cmdpal-x64" -Recurse -Filter "AppxManifest.xml" | Select-Object -First 1
+        if ($manifestFolder) {
+          Copy-Item "$($manifestFolder.DirectoryName)\*" -Destination publish-x64\cmdpal -Recurse
         }
+        # Build installer
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion=${{ needs.test.outputs.majorMinorPatch }} /DMyAppArch=x64 /Dpublish=publish-x64 installer.iss
 
-    - name: Build Installer (x64)
+    - name: Build arm64 Installer
       run: |
-        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion=${{ needs.test.outputs.majorMinorPatch }} installer.iss
+        # Prepare arm64 files
+        mkdir publish-arm64
+        copy artifacts/tray-win-arm64/Moltbot.Tray.exe publish-arm64/
+        mkdir publish-arm64\cmdpal
+        $manifestFolder = Get-ChildItem -Path "artifacts/cmdpal-arm64" -Recurse -Filter "AppxManifest.xml" | Select-Object -First 1
+        if ($manifestFolder) {
+          Copy-Item "$($manifestFolder.DirectoryName)\*" -Destination publish-arm64\cmdpal -Recurse
+        }
+        # Build installer
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion=${{ needs.test.outputs.majorMinorPatch }} /DMyAppArch=arm64 /Dpublish=publish-arm64 installer.iss
 
     - name: Azure Login for Signing
       uses: azure/login@v2
@@ -217,19 +222,22 @@ jobs:
       with:
         generate_release_notes: true
         files: |
-          Output/MoltbotTray-Setup.exe
+          Output/MoltbotTray-Setup-x64.exe
+          Output/MoltbotTray-Setup-arm64.exe
           MoltbotTray-${{ needs.test.outputs.majorMinorPatch }}-win-x64.zip
           MoltbotTray-${{ needs.test.outputs.majorMinorPatch }}-win-arm64.zip
         body: |
           ## Moltbot Windows Hub ${{ github.ref_name }}
 
           ### Downloads
-          - **Installer**: `MoltbotTray-Setup.exe` - Windows installer (x64, recommended)
-          - **Portable x64**: `MoltbotTray-${{ needs.test.outputs.majorMinorPatch }}-win-x64.zip` - Intel/AMD 64-bit
-          - **Portable ARM64**: `MoltbotTray-${{ needs.test.outputs.majorMinorPatch }}-win-arm64.zip` - Windows on ARM
+          - **Installer (x64)**: `MoltbotTray-Setup-x64.exe` - Intel/AMD 64-bit
+          - **Installer (ARM64)**: `MoltbotTray-Setup-arm64.exe` - Windows on ARM (Surface, etc.)
+          - **Portable x64**: `MoltbotTray-${{ needs.test.outputs.majorMinorPatch }}-win-x64.zip`
+          - **Portable ARM64**: `MoltbotTray-${{ needs.test.outputs.majorMinorPatch }}-win-arm64.zip`
 
           ### Features
           - 🦞 System tray integration with gateway status
+          - 🎯 PowerToys Command Palette extension (optional)
           - 🔄 Auto-updates from GitHub Releases
           - ✅ Code-signed with Azure Trusted Signing
 
@@ -237,9 +245,10 @@ jobs:
           - Windows 10 version 1903 or later
           - [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
           - Moltbot gateway running locally
+          - PowerToys (for Command Palette extension)
 
           ### Quick Start
-          1. Run the installer or extract the ZIP
-          2. Launch `Moltbot.Tray.exe`
-          3. Right-click tray icon → Settings
-          4. Enter your gateway URL and token
+          1. Run the installer for your architecture
+          2. Optionally enable Command Palette extension during install
+          3. Launch from Start Menu or system tray
+          4. Right-click tray icon → Settings to configure

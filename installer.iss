@@ -4,6 +4,11 @@
 #define MyAppURL "https://github.com/shanselman/moltbot-windows-hub"
 #define MyAppExeName "Moltbot.Tray.exe"
 
+; MyAppArch should be passed via /DMyAppArch=x64 or /DMyAppArch=arm64
+#ifndef MyAppArch
+  #define MyAppArch "x64"
+#endif
+
 [Setup]
 AppId={{M0LTB0T-TRAY-4PP1-D3N7}}
 AppName={#MyAppName}
@@ -15,16 +20,28 @@ AppUpdatesURL=https://github.com/shanselman/moltbot-windows-hub/releases
 DefaultDirName={localappdata}\MoltbotTray
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=MoltbotTray-Setup
+OutputBaseFilename=MoltbotTray-Setup-{#MyAppArch}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 SetupIconFile=src\Moltbot.Tray\moltbot.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
+#if MyAppArch == "arm64"
+ArchitecturesInstallIn64BitMode=arm64
+ArchitecturesAllowed=arm64
+#else
+ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+
+; publish folder should be passed via /Dpublish=publish-x64 or /Dpublish=publish-arm64
+#ifndef publish
+  #define publish "publish"
+#endif
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
@@ -33,10 +50,10 @@ Name: "cmdpalette"; Description: "Install PowerToys Command Palette extension"; 
 
 [Files]
 ; Tray app
-Source: "publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#publish}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "src\Moltbot.Tray\moltbot.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Command Palette extension (all files from build output)
-Source: "publish\cmdpal\*"; DestDir: "{app}\CommandPalette"; Flags: ignoreversion recursesubdirs; Tasks: cmdpalette
+Source: "{#publish}\cmdpal\*"; DestDir: "{app}\CommandPalette"; Flags: ignoreversion recursesubdirs; Tasks: cmdpalette
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\moltbot.ico"
