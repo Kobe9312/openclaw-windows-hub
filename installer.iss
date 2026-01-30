@@ -1,8 +1,8 @@
-; Moltbot Tray Inno Setup Script
+; Moltbot Tray Inno Setup Script (WinUI version)
 #define MyAppName "Moltbot Tray"
 #define MyAppPublisher "Scott Hanselman"
 #define MyAppURL "https://github.com/shanselman/moltbot-windows-hub"
-#define MyAppExeName "Moltbot.Tray.exe"
+#define MyAppExeName "Moltbot.Tray.WinUI.exe"
 
 ; MyAppArch should be passed via /DMyAppArch=x64 or /DMyAppArch=arm64
 #ifndef MyAppArch
@@ -25,7 +25,7 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
-SetupIconFile=src\Moltbot.Tray\moltbot.ico
+SetupIconFile=src\Moltbot.Tray.WinUI\Assets\moltbot.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 #if MyAppArch == "arm64"
 ArchitecturesInstallIn64BitMode=arm64
@@ -49,16 +49,15 @@ Name: "startupicon"; Description: "Start Moltbot Tray when Windows starts"; Grou
 Name: "cmdpalette"; Description: "Install PowerToys Command Palette extension"; GroupDescription: "Integrations:"; Flags: unchecked
 
 [Files]
-; Tray app
-Source: "{#publish}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "src\Moltbot.Tray\moltbot.ico"; DestDir: "{app}"; Flags: ignoreversion
+; WinUI Tray app - include all files (WinUI needs DLLs, not single-file)
+Source: "{#publish}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; Command Palette extension (all files from build output)
 Source: "{#publish}\cmdpal\*"; DestDir: "{app}\CommandPalette"; Flags: ignoreversion recursesubdirs; Tasks: cmdpalette
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\moltbot.ico"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\moltbot.ico"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startupicon
 
 [Run]
