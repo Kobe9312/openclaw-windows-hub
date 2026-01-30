@@ -64,7 +64,7 @@ A Windows system tray companion for [OpenClaw](https://moltbot.com) — the Wind
 - **ARM64 support** — native builds for Windows on ARM
 - **Auto-start** via Windows Registry
 - **Exponential backoff** on reconnect (1s → 60s)
-- **File logging** to `%LOCALAPPDATA%\OpenClawTray\moltbot-tray.log` (with rotation at 1MB)
+- **File logging** to `%LOCALAPPDATA%\OpenClawTray\openclaw-tray.log` (with rotation at 1MB)
 - **Open Log File** menu item for quick debugging
 - **Single instance** enforcement (mutex)
 - **Proper GDI handle cleanup** (no icon leaks)
@@ -206,7 +206,7 @@ Settings are stored in `%APPDATA%\OpenClawTray\settings.json`:
 
 **WebChat blank?**
 - Install [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
-- Check logs: `%LOCALAPPDATA%\OpenClawTray\moltbot-tray.log`
+- Check logs: `%LOCALAPPDATA%\OpenClawTray\openclaw-tray.log`
 - Right-click tray → Open Log File
 
 **Global hotkey not working?**

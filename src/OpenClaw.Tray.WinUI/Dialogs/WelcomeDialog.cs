@@ -20,7 +20,7 @@ public sealed class WelcomeDialog : WindowEx
         Title = "Welcome to OpenClaw";
         this.SetWindowSize(480, 440);
         this.CenterOnScreen();
-        this.SetIcon("Assets\\moltbot.ico");
+        this.SetIcon("Assets\\openclaw.ico");
         
         // Apply Mica backdrop for modern Windows 11 look
         SystemBackdrop = new MicaBackdrop();

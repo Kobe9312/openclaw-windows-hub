@@ -34,7 +34,7 @@ This Windows system tray application is built with .NET 10 and Windows Forms, de
 | **OpenClawGatewayClient** | `OpenClawGatewayClient.cs` | WebSocket client implementing gateway protocol v3 with event parsing, session tracking, and usage monitoring |
 | **SettingsManager** | `SettingsManager.cs` | JSON-based settings persistence in `%APPDATA%\OpenClawTray\` |
 | **SettingsDialog** | `SettingsDialog.cs` | Settings UI with URL/token config, test connection (with timeout), and notification preferences |
-| **Logger** | `Logger.cs` | Thread-safe file + debug logger with automatic rotation (1MB), writes to `%LOCALAPPDATA%\OpenClawTray\moltbot-tray.log` |
+| **Logger** | `Logger.cs` | Thread-safe file + debug logger with automatic rotation (1MB), writes to `%LOCALAPPDATA%\OpenClawTray\openclaw-tray.log` |
 | **DeepLinkHandler** | `DeepLinkHandler.cs` | `openclaw://` URI scheme registration and processing for cross-app integration |
 | **WebChatForm** | `WebChatForm.cs` | WebView2-based chat panel (singleton) with toolbar, fallback to browser |
 | **QuickSendDialog** | `QuickSendDialog.cs` | Lightweight dialog for sending messages (supports Ctrl+Enter) |
