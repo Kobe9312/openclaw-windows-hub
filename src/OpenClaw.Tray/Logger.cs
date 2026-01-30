@@ -7,7 +7,7 @@ namespace OpenClawTray;
 
 /// <summary>
 /// Simple file + debug logger for troubleshooting.
-/// Writes to %LOCALAPPDATA%\MoltbotTray\openclaw-tray.log
+/// Writes to %LOCALAPPDATA%\OpenClawTray\openclaw-tray.log
 /// </summary>
 public static class Logger
 {

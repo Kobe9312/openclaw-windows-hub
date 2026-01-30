@@ -111,7 +111,7 @@ public class StatusDetailForm : ModernForm
         var sb = new StringBuilder();
 
         // Header
-        sb.AppendLine("🦞 MOLTBOT STATUS");
+        sb.AppendLine("🦞 OPENCLAW STATUS");
         sb.AppendLine(new string('─', 40));
         sb.AppendLine();
 

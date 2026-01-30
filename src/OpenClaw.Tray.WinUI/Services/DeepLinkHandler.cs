@@ -9,8 +9,8 @@ namespace OpenClawTray.Services;
 /// </summary>
 public static class DeepLinkHandler
 {
-    private const string UriScheme = "moltbot";
-    private const string UriSchemeKey = @"SOFTWARE\Classes\moltbot";
+    private const string UriScheme = "openclaw";
+    private const string UriSchemeKey = @"SOFTWARE\Classes\openclaw";
 
     public static void RegisterUriScheme()
     {

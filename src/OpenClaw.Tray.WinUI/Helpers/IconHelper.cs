@@ -37,7 +37,7 @@ public static class IconHelper
         // If specific icon doesn't exist, fall back to main icon
         if (!File.Exists(path))
         {
-            path = Path.Combine(AssetsPath, "moltbot.ico");
+            path = Path.Combine(AssetsPath, "openclaw.ico");
         }
 
         return path;
@@ -58,7 +58,7 @@ public static class IconHelper
     {
         if (_appIcon != null) return _appIcon;
 
-        var iconPath = Path.Combine(AssetsPath, "moltbot.ico");
+        var iconPath = Path.Combine(AssetsPath, "openclaw.ico");
         if (File.Exists(iconPath))
         {
             _appIcon = new Icon(iconPath);
