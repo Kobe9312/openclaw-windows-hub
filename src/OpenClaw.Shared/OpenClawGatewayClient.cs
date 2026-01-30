@@ -263,7 +263,7 @@ public class OpenClawGatewayClient : IDisposable
                 permissions = new { },
                 auth = new { token = _token },
                 locale = "en-US",
-                userAgent = "moltbot-windows-tray/1.0.0"
+                userAgent = "openclaw-windows-tray/1.0.0"
             }
         };
         await SendRawAsync(JsonSerializer.Serialize(msg));
