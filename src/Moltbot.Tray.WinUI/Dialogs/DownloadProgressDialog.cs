@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Updatum;
 
 namespace MoltbotTray.Dialogs;
@@ -17,6 +18,7 @@ public sealed class DownloadProgressDialog
     public void ShowAsync()
     {
         _window = new Window { Title = "Downloading Update..." };
+        _window.SystemBackdrop = new MicaBackdrop(); // Apply Mica backdrop
         
         var panel = new StackPanel { Padding = new Thickness(20) };
         var progressText = new TextBlock { Text = "Downloading update...", Margin = new Thickness(0, 0, 0, 10) };

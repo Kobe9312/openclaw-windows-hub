@@ -6,6 +6,10 @@
     xmlns:winex="using:WinUIEx"
     Title="Moltbot Chat">
 
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="Base"/>
+    </Window.SystemBackdrop>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

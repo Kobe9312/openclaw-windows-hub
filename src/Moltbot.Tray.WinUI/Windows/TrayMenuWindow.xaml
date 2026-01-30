@@ -8,7 +8,11 @@
     Width="280"
     Height="400">
 
-    <Border Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+    <Window.SystemBackdrop>
+        <DesktopAcrylicBackdrop/>
+    </Window.SystemBackdrop>
+
+    <Border Background="Transparent"
             BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
             BorderThickness="1"
             CornerRadius="8">

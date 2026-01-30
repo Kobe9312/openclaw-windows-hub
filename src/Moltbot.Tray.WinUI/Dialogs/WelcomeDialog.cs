@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Threading.Tasks;
 using WinUIEx;
@@ -20,6 +21,9 @@ public sealed class WelcomeDialog : WindowEx
         this.SetWindowSize(480, 440);
         this.CenterOnScreen();
         this.SetIcon("Assets\\moltbot.ico");
+        
+        // Apply Mica backdrop for modern Windows 11 look
+        SystemBackdrop = new MicaBackdrop();
         
         // Build UI directly in the window (no ContentDialog needed)
         var root = new Grid

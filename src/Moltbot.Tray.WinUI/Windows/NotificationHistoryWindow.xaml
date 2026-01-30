@@ -6,6 +6,10 @@
     xmlns:winex="using:WinUIEx"
     Title="Notification History — Moltbot Tray">
 
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="Base"/>
+    </Window.SystemBackdrop>
+
     <Grid Padding="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

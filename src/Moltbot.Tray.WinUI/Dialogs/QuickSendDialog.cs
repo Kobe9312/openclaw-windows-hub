@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Moltbot.Shared;
 using MoltbotTray.Helpers;
 using MoltbotTray.Services;
@@ -30,6 +31,9 @@ public sealed class QuickSendDialog : WindowEx
         this.SetWindowSize(400, 200);
         this.CenterOnScreen();
         this.SetIcon(IconHelper.GetStatusIconPath(ConnectionStatus.Connected));
+        
+        // Apply Acrylic backdrop for transient dialog feel
+        SystemBackdrop = new DesktopAcrylicBackdrop();
         
         // Build UI programmatically (simple dialog)
         var root = new StackPanel

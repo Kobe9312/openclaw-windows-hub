@@ -6,6 +6,10 @@
     xmlns:winex="using:WinUIEx"
     Title="Status — Moltbot Tray">
 
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="Base"/>
+    </Window.SystemBackdrop>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
         <StackPanel Spacing="16" MaxWidth="400">
             

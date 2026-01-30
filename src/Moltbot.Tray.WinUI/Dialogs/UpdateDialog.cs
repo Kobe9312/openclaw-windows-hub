@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Threading.Tasks;
 
@@ -34,6 +35,7 @@ public sealed class UpdateDialog
         // Create a temporary window to host the dialog
         var window = new Window();
         window.Content = new Grid();
+        window.SystemBackdrop = new MicaBackdrop(); // Apply Mica to host window
         window.Activate();
 
         // Build dialog content
