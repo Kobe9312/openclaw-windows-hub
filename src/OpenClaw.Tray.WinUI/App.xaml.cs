@@ -59,6 +59,9 @@ public partial class App : Application
     private StatusDetailWindow? _statusDetailWindow;
     private NotificationHistoryWindow? _notificationHistoryWindow;
     private TrayMenuWindow? _trayMenuWindow;
+    
+    // Keep-alive window to anchor WinUI runtime (prevents GC/threading issues)
+    private Window? _keepAliveWindow;
 
     private string[]? _startupArgs;
     private static readonly string CrashLogPath = Path.Combine(
@@ -176,8 +179,26 @@ public partial class App : Application
         Logger.Info("Application started (WinUI 3)");
     }
 
+    private void InitializeKeepAliveWindow()
+    {
+        // Create a hidden window to keep the WinUI runtime properly initialized
+        // This prevents GC/threading issues when creating windows after idle
+        _keepAliveWindow = new Window();
+        _keepAliveWindow.Content = new Microsoft.UI.Xaml.Controls.Grid();
+        _keepAliveWindow.AppWindow.IsShownInSwitchers = false;
+        
+        // Move off-screen and set minimal size
+        _keepAliveWindow.AppWindow.MoveAndResize(new global::Windows.Graphics.RectInt32(-32000, -32000, 1, 1));
+    }
+
     private void InitializeTrayIcon()
     {
+        // Initialize keep-alive window first to anchor WinUI runtime
+        InitializeKeepAliveWindow();
+        
+        // Pre-create tray menu window at startup to avoid creation crashes later
+        InitializeTrayMenuWindow();
+        
         var iconPath = IconHelper.GetStatusIconPath(ConnectionStatus.Disconnected);
         _trayIcon = new TrayIcon(1, iconPath, "OpenClaw Tray — Disconnected");
         _trayIcon.IsVisible = true;
@@ -185,16 +206,24 @@ public partial class App : Application
         _trayIcon.ContextMenu += OnTrayContextMenu;
     }
 
+    private void InitializeTrayMenuWindow()
+    {
+        // Pre-create menu window once - reuse to avoid crash on window creation after idle
+        _trayMenuWindow = new TrayMenuWindow();
+        _trayMenuWindow.MenuItemClicked += OnTrayMenuItemClicked;
+        // Don't close - just hide
+    }
+
     private void OnTrayIconSelected(TrayIcon sender, TrayIconEventArgs e)
     {
-        // Left-click: show flyout menu (avoids window creation crash)
-        e.Flyout = BuildTrayMenuFlyout();
+        // Left-click: show custom popup menu
+        ShowTrayMenuPopup();
     }
 
     private void OnTrayContextMenu(TrayIcon sender, TrayIconEventArgs e)
     {
-        // Right-click: show flyout menu
-        e.Flyout = BuildTrayMenuFlyout();
+        // Right-click: show custom popup menu
+        ShowTrayMenuPopup();
     }
 
     private MenuFlyout BuildTrayMenuFlyout()
@@ -259,9 +288,9 @@ public partial class App : Application
             var sessionsMenu = new MenuFlyoutSubItem { Text = $"📋 Sessions ({_lastSessions.Length})" };
             foreach (var session in _lastSessions.Take(5))
             {
-                var sessionItem = new MenuFlyoutItem { Text = session.DisplayName ?? session.Id };
-                var sessionId = session.Id;
-                sessionItem.Click += (s, e) => OpenDashboard($"sessions/{sessionId}");
+                var sessionItem = new MenuFlyoutItem { Text = session.DisplayText };
+                var sessionKey = session.Key;
+                sessionItem.Click += (s, e) => OpenDashboard($"sessions/{sessionKey}");
                 sessionsMenu.Items.Add(sessionItem);
             }
             flyout.Items.Add(sessionsMenu);
@@ -304,8 +333,6 @@ public partial class App : Application
         return flyout;
     }
 
-    // Keep old method for backwards compat but mark unused
-    [System.Obsolete("Use BuildTrayMenuFlyout instead - window-based menu causes crashes")]
     private async void ShowTrayMenuPopup()
     {
         try
@@ -322,36 +349,40 @@ public partial class App : Application
             {
                 try
                 {
-                    // Request data updates - these will update _lastSessions, _lastChannels, etc.
-                    var healthTask = _gatewayClient.CheckHealthAsync();
-                    var sessionsTask = _gatewayClient.RequestSessionsAsync();
-                    var usageTask = _gatewayClient.RequestUsageAsync();
+                    // Request fresh data
+                    _ = _gatewayClient.CheckHealthAsync();
+                    _ = _gatewayClient.RequestSessionsAsync();
+                    _ = _gatewayClient.RequestUsageAsync();
                     
-                    // Wait briefly for data to arrive (don't block forever)
-                    await Task.WhenAny(
-                        Task.WhenAll(healthTask, sessionsTask, usageTask),
-                        Task.Delay(150) // 150ms max wait
-                    );
+                    // Only wait if we have NO cached session data
+                    // Otherwise show instantly with cached data (feels snappier)
+                    if (_lastSessions.Length == 0)
+                    {
+                        await Task.Delay(200); // Wait for first-time data
+                    }
+                    else
+                    {
+                        await Task.Delay(50); // Brief yield to let fresh data arrive if ready
+                    }
+                    
+                    Logger.Info($"Menu data: {_lastSessions.Length} sessions, {_lastChannels.Length} channels");
                 }
-                catch { /* ignore fetch errors */ }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"Data fetch error: {ex.Message}");
+                }
             }
 
-            // Always create a fresh window - reuse causes visual glitches
-            // Close existing window first if any
-            if (_trayMenuWindow != null)
+            // Reuse pre-created window - never create new ones after startup
+            if (_trayMenuWindow == null)
             {
-                try 
-                { 
-                    _trayMenuWindow.Close(); 
-                }
-                catch { /* ignore close errors */ }
-                _trayMenuWindow = null;
+                // This shouldn't happen, but recreate if needed
+                Logger.Warn("TrayMenuWindow was null, recreating");
+                InitializeTrayMenuWindow();
             }
 
-            _trayMenuWindow = new TrayMenuWindow();
-            _trayMenuWindow.MenuItemClicked += OnTrayMenuItemClicked;
-            _trayMenuWindow.Closed += (s, e) => _trayMenuWindow = null;
-
+            // Rebuild menu content
+            _trayMenuWindow!.ClearItems();
             BuildTrayMenuPopup(_trayMenuWindow);
             _trayMenuWindow.SizeToContent();
             _trayMenuWindow.ShowAtCursor();
@@ -360,7 +391,6 @@ public partial class App : Application
         {
             LogCrash("ShowTrayMenuPopup", ex);
             Logger.Error($"Failed to show tray menu: {ex.Message}");
-            _trayMenuWindow = null;
         }
     }
 

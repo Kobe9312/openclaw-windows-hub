@@ -10,9 +10,11 @@ namespace OpenClawTray.Windows;
 
 /// <summary>
 /// A popup window that displays the tray menu at the cursor position.
+/// Uses Win32 to remove title bar (workaround for Bug 57667927).
 /// </summary>
 public sealed partial class TrayMenuWindow : WindowEx
 {
+    #region Win32 Imports
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetCursorPos(out POINT lpPoint);
@@ -26,23 +28,35 @@ public sealed partial class TrayMenuWindow : WindowEx
     [DllImport("user32.dll")]
     private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
 
+    [DllImport("user32.dll")]
+    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+    
+    [DllImport("user32.dll")]
+    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
     private const uint MONITOR_DEFAULTTONEAREST = 2;
+    private const int GWL_STYLE = -16;
+    private const int WS_CAPTION = 0x00C00000;
+    private const int WS_THICKFRAME = 0x00040000;
+    private const int WS_SYSMENU = 0x00080000;
+    
+    // SetWindowPos flags
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_NOSIZE = 0x0001;
+    private const uint SWP_NOZORDER = 0x0004;
+    private const uint SWP_FRAMECHANGED = 0x0020;
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct POINT
-    {
-        public int X;
-        public int Y;
-    }
+    private struct POINT { public int X; public int Y; }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct RECT
-    {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
-    }
+    private struct RECT { public int Left, Top, Right, Bottom; }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MONITORINFO
@@ -52,6 +66,7 @@ public sealed partial class TrayMenuWindow : WindowEx
         public RECT rcWork;
         public uint dwFlags;
     }
+    #endregion
 
     public event EventHandler<string>? MenuItemClicked;
 
@@ -59,6 +74,7 @@ public sealed partial class TrayMenuWindow : WindowEx
     private int _itemCount = 0;
     private int _separatorCount = 0;
     private int _headerCount = 0;
+    private bool _styleApplied = false;
 
     public TrayMenuWindow()
     {
@@ -68,10 +84,13 @@ public sealed partial class TrayMenuWindow : WindowEx
         this.IsMaximizable = false;
         this.IsMinimizable = false;
         this.IsResizable = false;
-        this.IsTitleBarVisible = false;
         this.IsAlwaysOnTop = true;
         
-        // Lose focus = close
+        // NOTE: Do NOT set IsTitleBarVisible = false!
+        // Bug 57667927: causes fail-fast in WndProc during dictionary enumeration.
+        // We remove the caption via Win32 SetWindowLong instead.
+        
+        // Hide when focus lost
         Activated += OnActivated;
     }
 
@@ -79,45 +98,47 @@ public sealed partial class TrayMenuWindow : WindowEx
     {
         if (args.WindowActivationState == WindowActivationState.Deactivated)
         {
-            Close();
+            this.Hide();
         }
     }
 
-    [DllImport("user32.dll")]
-    private static extern uint GetDpiForWindow(IntPtr hwnd);
-
     public void ShowAtCursor()
     {
+        // Remove title bar via Win32 (once, on first show)
+        if (!_styleApplied)
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            int style = GetWindowLong(hwnd, GWL_STYLE);
+            style &= ~(WS_CAPTION | WS_THICKFRAME | WS_SYSMENU);
+            SetWindowLong(hwnd, GWL_STYLE, style);
+            
+            // Must call SetWindowPos with SWP_FRAMECHANGED to apply the style change
+            SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0, 
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+            
+            _styleApplied = true;
+        }
+
         if (GetCursorPos(out POINT pt))
         {
-            // Get DPI scale factor
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             uint dpi = GetDpiForWindow(hwnd);
             if (dpi == 0) dpi = 96;
             double scale = dpi / 96.0;
 
-            // Get the monitor where the cursor is
+            // Get work area of monitor where cursor is
             var hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
             var monitorInfo = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
             GetMonitorInfo(hMonitor, ref monitorInfo);
-
             var workArea = monitorInfo.rcWork;
-            
-            // Scale the menu dimensions to physical pixels
+
+            // Scale menu dimensions
             int menuWidthPhysical = (int)(280 * scale);
             int menuHeightPhysical = (int)(_menuHeight * scale);
-            
-            // Calculate X position - keep menu on screen
-            int x = pt.X;
-            if (x + menuWidthPhysical > workArea.Right)
-                x = workArea.Right - menuWidthPhysical;
-            if (x < workArea.Left)
-                x = workArea.Left;
 
-            // Calculate Y position - open ABOVE cursor (tray is at bottom)
+            // Position: keep on screen, prefer above cursor (tray is at bottom)
+            int x = Math.Clamp(pt.X, workArea.Left, workArea.Right - menuWidthPhysical);
             int y = pt.Y - menuHeightPhysical - 10;
-            
-            // If not enough room above, open below
             if (y < workArea.Top)
                 y = pt.Y + 10;
 
@@ -125,10 +146,7 @@ public sealed partial class TrayMenuWindow : WindowEx
         }
 
         Activate();
-
-        // Ensure window gets focus so clicking away will close it
-        var hwndFocus = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        SetForegroundWindow(hwndFocus);
+        SetForegroundWindow(WinRT.Interop.WindowNative.GetWindowHandle(this));
     }
 
     public void AddMenuItem(string text, string? icon, string action, bool isEnabled = true, bool indent = false)
@@ -160,7 +178,7 @@ public sealed partial class TrayMenuWindow : WindowEx
         button.Click += (s, e) =>
         {
             MenuItemClicked?.Invoke(this, action);
-            Close();
+            this.Hide(); // Hide instead of close - window is reused
         };
 
         // Hover effect
