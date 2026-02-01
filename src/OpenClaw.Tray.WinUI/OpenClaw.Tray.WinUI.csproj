@@ -37,5 +37,14 @@
     <Content Include="Assets\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- Copy WebView2Loader.dll to output root for unpackaged app -->
+  <Target Name="CopyWebView2Loader" AfterTargets="Build">
+    <PropertyGroup>
+      <WebView2LoaderSource Condition="'$(Platform)' == 'ARM64' OR '$(RuntimeIdentifier)' == 'win-arm64'">$(OutputPath)runtimes\win-arm64\native\WebView2Loader.dll</WebView2LoaderSource>
+      <WebView2LoaderSource Condition="'$(WebView2LoaderSource)' == ''">$(OutputPath)runtimes\win-x64\native\WebView2Loader.dll</WebView2LoaderSource>
+    </PropertyGroup>
+    <Copy SourceFiles="$(WebView2LoaderSource)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('$(WebView2LoaderSource)')" />
+  </Target>
+
 </Project>
 

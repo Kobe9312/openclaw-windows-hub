@@ -26,6 +26,7 @@ public sealed partial class WebChatWindow : WindowEx
 
     public WebChatWindow(string gatewayUrl, string token)
     {
+        Logger.Info($"WebChatWindow: Constructor called, gateway={gatewayUrl}");
         _gatewayUrl = gatewayUrl;
         _token = token;
         
@@ -40,6 +41,7 @@ public sealed partial class WebChatWindow : WindowEx
         
         Closed += OnWindowClosed;
         
+        Logger.Info("WebChatWindow: Starting InitializeWebViewAsync");
         _ = InitializeWebViewAsync();
     }
 
@@ -61,15 +63,23 @@ public sealed partial class WebChatWindow : WindowEx
     {
         try
         {
-            // Set up user data folder via environment variable (WinUI 3 workaround)
+            Logger.Info("WebChatWindow: Initializing WebView2...");
+            
+            // Set up user data folder
             var userDataFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "OpenClawTray", "WebView2");
             
             Directory.CreateDirectory(userDataFolder);
-            Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+            Logger.Info($"WebChatWindow: User data folder: {userDataFolder}");
 
+            // Set environment variable for user data folder (WinUI workaround)
+            Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+            
+            // Just call EnsureCoreWebView2Async without creating environment first
+            Logger.Info("WebChatWindow: Calling EnsureCoreWebView2Async...");
             await WebView.EnsureCoreWebView2Async();
+            Logger.Info("WebChatWindow: CoreWebView2 initialized successfully");
             
             // Configure WebView2
             WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
@@ -79,6 +89,7 @@ public sealed partial class WebChatWindow : WindowEx
             // Handle navigation events (store for cleanup)
             _navigationCompletedHandler = (s, e) =>
             {
+                Logger.Info($"WebChatWindow: Navigation completed, success={e.IsSuccess}, status={e.WebErrorStatus}");
                 LoadingRing.IsActive = false;
                 LoadingRing.Visibility = Visibility.Collapsed;
             };
@@ -86,6 +97,7 @@ public sealed partial class WebChatWindow : WindowEx
 
             _navigationStartingHandler = (s, e) =>
             {
+                Logger.Info($"WebChatWindow: Navigation starting to {e.Uri}");
                 LoadingRing.IsActive = true;
                 LoadingRing.Visibility = Visibility.Visible;
             };
@@ -98,7 +110,13 @@ public sealed partial class WebChatWindow : WindowEx
         catch (Exception ex)
         {
             Logger.Error($"WebView2 initialization failed: {ex.Message}");
+            Logger.Error($"WebView2 stack trace: {ex.StackTrace}");
             LoadingRing.IsActive = false;
+            
+            // Fallback: open in browser
+            Logger.Info("Falling back to browser...");
+            OnPopout(this, new RoutedEventArgs());
+            Close();
         }
     }
 
@@ -111,6 +129,7 @@ public sealed partial class WebChatWindow : WindowEx
             .Replace("wss://", "https://");
         
         var url = $"{baseUrl}?token={Uri.EscapeDataString(_token)}";
+        Logger.Info($"WebChatWindow: Navigating to {baseUrl} (token hidden)");
         WebView.CoreWebView2.Navigate(url);
     }
 
