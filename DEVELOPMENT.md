@@ -608,7 +608,7 @@ gh run download <run-id> --repo shanselman/openclaw-windows-hub
 - Dependencies restore correctly
 
 ✅ **Unit Tests:**
-- All 88 tests pass
+- All tests pass
 - No test failures or skips
 
 ✅ **Code Signing:**
