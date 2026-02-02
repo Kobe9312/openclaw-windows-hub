@@ -113,7 +113,9 @@ public sealed partial class WebChatWindow : WindowEx
 
             _navigationStartingHandler = (s, e) =>
             {
-                Logger.Info($"WebChatWindow: Navigation starting to {e.Uri}");
+                // Strip query params to avoid logging tokens
+                var safeUri = e.Uri?.Split('?')[0] ?? "unknown";
+                Logger.Info($"WebChatWindow: Navigation starting to {safeUri}");
                 LoadingRing.IsActive = true;
                 LoadingRing.Visibility = Visibility.Visible;
             };
