@@ -34,7 +34,21 @@ public class OpenClawGatewayClient : IDisposable
 
     public OpenClawGatewayClient(string gatewayUrl, string token, IOpenClawLogger? logger = null)
     {
-        _gatewayUrl = gatewayUrl;
+        // Normalize HTTP/HTTPS URLs to WS/WSS for WebSocket connection
+        // This allows users to specify https://hostname URLs (e.g., Tailscale Serve)
+        if (gatewayUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            _gatewayUrl = "ws://" + gatewayUrl.Substring(7);
+        }
+        else if (gatewayUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            _gatewayUrl = "wss://" + gatewayUrl.Substring(8);
+        }
+        else
+        {
+            _gatewayUrl = gatewayUrl;
+        }
+        
         _token = token;
         _logger = logger ?? NullLogger.Instance;
         _cts = new CancellationTokenSource();
