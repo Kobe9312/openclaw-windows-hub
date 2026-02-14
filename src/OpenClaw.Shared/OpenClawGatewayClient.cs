@@ -38,11 +38,11 @@ public class OpenClawGatewayClient : IDisposable
         // This allows users to specify https://hostname URLs (e.g., Tailscale Serve)
         if (gatewayUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
         {
-            _gatewayUrl = "ws://" + gatewayUrl.Substring(7);
+            _gatewayUrl = gatewayUrl.Replace("http://", "ws://", StringComparison.OrdinalIgnoreCase);
         }
         else if (gatewayUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            _gatewayUrl = "wss://" + gatewayUrl.Substring(8);
+            _gatewayUrl = gatewayUrl.Replace("https://", "wss://", StringComparison.OrdinalIgnoreCase);
         }
         else
         {
