@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:winex="using:WinUIEx"
-    Title="Activity Stream — OpenClaw Tray">
+    Title="活动流 — OpenClaw 托盘">
 
     <Window.SystemBackdrop>
         <MicaBackdrop Kind="Base"/>
@@ -19,18 +19,18 @@
 
         <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,12">
             <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="⚡ Activity Stream" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                <TextBlock Text="⚡ 活动流" Style="{StaticResource SubtitleTextBlockStyle}"/>
                 <TextBlock x:Name="CountText" Text="(0)" VerticalAlignment="Center"
                            Style="{StaticResource CaptionTextBlockStyle}"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
             </StackPanel>
 
             <ComboBox x:Name="FilterCombo" Width="180" SelectionChanged="OnFilterChanged">
-                <ComboBoxItem Content="All activity" Tag="all" />
-                <ComboBoxItem Content="Sessions" Tag="session" />
-                <ComboBoxItem Content="Usage" Tag="usage" />
-                <ComboBoxItem Content="Nodes" Tag="node" />
-                <ComboBoxItem Content="Notifications" Tag="notification" />
+                <ComboBoxItem Content="所有活动" Tag="all" />
+                <ComboBoxItem Content="会话" Tag="session" />
+                <ComboBoxItem Content="使用情况" Tag="usage" />
+                <ComboBoxItem Content="节点" Tag="node" />
+                <ComboBoxItem Content="通知" Tag="notification" />
             </ComboBox>
         </StackPanel>
 
@@ -83,16 +83,16 @@
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Visibility="Collapsed">
             <TextBlock Text="🧭" FontSize="48" HorizontalAlignment="Center"/>
-            <TextBlock Text="No activity yet"
+            <TextBlock Text="暂无活动"
                        Style="{StaticResource BodyTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8"
                     HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Open Dashboard" Click="OnOpenDashboard"/>
-            <Button Content="Clear All" Click="OnClearAll"/>
-            <Button Content="Close" Click="OnClose"/>
+            <Button Content="打开仪表板" Click="OnOpenDashboard"/>
+            <Button Content="清除全部" Click="OnClearAll"/>
+            <Button Content="关闭" Click="OnClose"/>
         </StackPanel>
     </Grid>
 </winex:WindowEx>

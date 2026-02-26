@@ -8,7 +8,7 @@ using WinUIEx;
 namespace OpenClawTray.Dialogs;
 
 /// <summary>
-/// First-run welcome dialog for new users.
+/// 首次运行欢迎对话框，用于新用户。
 /// </summary>
 public sealed class WelcomeDialog : WindowEx
 {
@@ -17,15 +17,15 @@ public sealed class WelcomeDialog : WindowEx
 
     public WelcomeDialog()
     {
-        Title = "Welcome to OpenClaw";
+        Title = "欢迎使用 OpenClaw";
         this.SetWindowSize(480, 440);
         this.CenterOnScreen();
         this.SetIcon("Assets\\openclaw.ico");
-        
-        // Apply Mica backdrop for modern Windows 11 look
+
+        // 应用 Mica 背景以获得现代 Windows 11 外观
         SystemBackdrop = new MicaBackdrop();
-        
-        // Build UI directly in the window (no ContentDialog needed)
+
+        // 直接在窗口中构建 UI（不需要 ContentDialog）
         var root = new Grid
         {
             Padding = new Thickness(32),
@@ -35,7 +35,7 @@ public sealed class WelcomeDialog : WindowEx
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        // Lobster header
+        // 龙虾头部
         var headerPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -49,38 +49,38 @@ public sealed class WelcomeDialog : WindowEx
         });
         headerPanel.Children.Add(new TextBlock
         {
-            Text = "Welcome to OpenClaw!",
+            Text = "欢迎使用 OpenClaw！",
             Style = (Style)Application.Current.Resources["TitleTextBlockStyle"],
             VerticalAlignment = VerticalAlignment.Center
         });
         Grid.SetRow(headerPanel, 0);
         root.Children.Add(headerPanel);
 
-        // Content
+        // 内容
         var content = new StackPanel { Spacing = 16 };
-        
+
         content.Children.Add(new TextBlock
         {
-            Text = "OpenClaw Tray is your Windows companion for OpenClaw, the AI-powered personal assistant.",
+            Text = "OpenClaw 托盘是你 Windows 的 OpenClaw 伴侣，这是一款 AI 驱动的个人助手。",
             TextWrapping = TextWrapping.Wrap
         });
 
         var gettingStarted = new StackPanel { Spacing = 8 };
         gettingStarted.Children.Add(new TextBlock
         {
-            Text = "To get started, you'll need:",
+            Text = "开始使用，你需要：",
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
         });
 
         var bulletList = new StackPanel { Spacing = 4, Margin = new Thickness(16, 0, 0, 0) };
-        bulletList.Children.Add(new TextBlock { Text = "• A running OpenClaw gateway" });
-        bulletList.Children.Add(new TextBlock { Text = "• Your API token from the dashboard" });
+        bulletList.Children.Add(new TextBlock { Text = "• 一个运行中的 OpenClaw 网关" });
+        bulletList.Children.Add(new TextBlock { Text = "• 从仪表板获取的 API 令牌" });
         gettingStarted.Children.Add(bulletList);
         content.Children.Add(gettingStarted);
 
         var docsButton = new HyperlinkButton
         {
-            Content = "📚 View Documentation",
+            Content = "📚 查看文档",
             NavigateUri = new Uri("https://docs.molt.bot/web/dashboard")
         };
         content.Children.Add(docsButton);
@@ -88,7 +88,7 @@ public sealed class WelcomeDialog : WindowEx
         Grid.SetRow(content, 1);
         root.Children.Add(content);
 
-        // Buttons
+        // 按钮
         var buttonPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -96,7 +96,7 @@ public sealed class WelcomeDialog : WindowEx
             Spacing = 8
         };
 
-        var laterButton = new Button { Content = "Later" };
+        var laterButton = new Button { Content = "稍后" };
         laterButton.Click += (s, e) =>
         {
             _result = ContentDialogResult.None;
@@ -106,7 +106,7 @@ public sealed class WelcomeDialog : WindowEx
 
         var settingsButton = new Button
         {
-            Content = "Open Settings",
+            Content = "打开设置",
             Style = (Style)Application.Current.Resources["AccentButtonStyle"]
         };
         settingsButton.Click += (s, e) =>
@@ -120,7 +120,7 @@ public sealed class WelcomeDialog : WindowEx
         root.Children.Add(buttonPanel);
 
         Content = root;
-        
+
         Closed += (s, e) => _tcs.TrySetResult(_result);
     }
 

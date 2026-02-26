@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:winex="using:WinUIEx"
-    Title="Status — OpenClaw Tray">
+    Title="状态 — OpenClaw 托盘">
 
     <Window.SystemBackdrop>
         <MicaBackdrop Kind="Base"/>
@@ -12,15 +12,15 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
         <StackPanel Spacing="16" MaxWidth="400">
-            
+
             <!-- Status Header -->
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <FontIcon x:Name="StatusIcon" Glyph="&#xE8FB;" FontSize="32"
                           Foreground="#E74C3C"/>
                 <StackPanel>
-                    <TextBlock x:Name="StatusText" Text="Connected" 
+                    <TextBlock x:Name="StatusText" Text="已连接"
                                Style="{StaticResource SubtitleTextBlockStyle}"/>
-                    <TextBlock x:Name="LastCheckText" Text="Last check: --"
+                    <TextBlock x:Name="LastCheckText" Text="最后检查：--"
                                Style="{StaticResource CaptionTextBlockStyle}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                 </StackPanel>
@@ -28,9 +28,9 @@
 
             <!-- Usage Section -->
             <StackPanel x:Name="UsageSection" Spacing="8">
-                <TextBlock Text="USAGE" Style="{StaticResource CaptionTextBlockStyle}"
+                <TextBlock Text="使用情况" Style="{StaticResource CaptionTextBlockStyle}"
                            Foreground="#E74C3C" FontWeight="Bold"/>
-                
+
                 <Grid ColumnSpacing="16" RowSpacing="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -41,26 +41,26 @@
                         <RowDefinition/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Cost (window):"/>
-                    <TextBlock x:Name="TodayCostText" Grid.Row="0" Grid.Column="1" 
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="费用 (窗口)："/>
+                    <TextBlock x:Name="TodayCostText" Grid.Row="0" Grid.Column="1"
                                Text="$0.00" FontWeight="SemiBold"/>
-                    
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Requests / Tokens:"/>
-                    <TextBlock x:Name="TodayRequestsText" Grid.Row="1" Grid.Column="1" 
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="请求数 / Token 数："/>
+                    <TextBlock x:Name="TodayRequestsText" Grid.Row="1" Grid.Column="1"
                                Text="0 / 0" FontWeight="SemiBold"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Providers:"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="提供商："/>
                     <TextBlock x:Name="ProviderSummaryText" Grid.Row="2" Grid.Column="1"
-                               Text="n/a" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                               Text="无" FontWeight="SemiBold" TextWrapping="Wrap"/>
                 </Grid>
             </StackPanel>
 
             <!-- Sessions Section -->
             <StackPanel x:Name="SessionsSection" Spacing="8">
-                <TextBlock Text="ACTIVE SESSIONS" Style="{StaticResource CaptionTextBlockStyle}"
+                <TextBlock Text="活跃会话" Style="{StaticResource CaptionTextBlockStyle}"
                            Foreground="#E74C3C" FontWeight="Bold"/>
-                
+
                 <ItemsControl x:Name="SessionsList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -73,7 +73,7 @@
                                 <TextBlock Text="💬" Grid.Column="0" Margin="0,0,8,0"/>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding Channel}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding LastMessage}" 
+                                    <TextBlock Text="{Binding LastMessage}"
                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                TextTrimming="CharacterEllipsis"
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
@@ -82,8 +82,8 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                
-                <TextBlock x:Name="NoSessionsText" Text="No active sessions"
+
+                <TextBlock x:Name="NoSessionsText" Text="无活跃会话"
                            Style="{StaticResource CaptionTextBlockStyle}"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                            Visibility="Collapsed"/>
@@ -91,9 +91,9 @@
 
             <!-- Channels Section -->
             <StackPanel x:Name="ChannelsSection" Spacing="8">
-                <TextBlock Text="CHANNELS" Style="{StaticResource CaptionTextBlockStyle}"
+                <TextBlock Text="频道" Style="{StaticResource CaptionTextBlockStyle}"
                            Foreground="#E74C3C" FontWeight="Bold"/>
-                
+
                 <ItemsControl x:Name="ChannelsList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -114,9 +114,8 @@
             </StackPanel>
 
             <!-- Refresh Button -->
-            <Button Content="Refresh" Click="OnRefresh" HorizontalAlignment="Center"/>
-            
+            <Button Content="刷新" Click="OnRefresh" HorizontalAlignment="Center"/>
+
         </StackPanel>
     </ScrollViewer>
 </winex:WindowEx>
-

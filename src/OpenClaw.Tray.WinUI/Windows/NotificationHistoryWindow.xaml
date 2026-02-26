@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:winex="using:WinUIEx"
-    Title="Notification History — OpenClaw Tray">
+    Title="通知历史 — OpenClaw 托盘">
 
     <Window.SystemBackdrop>
         <MicaBackdrop Kind="Base"/>
@@ -19,14 +19,14 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,16">
-            <TextBlock Text="📋 Notification History" Style="{StaticResource SubtitleTextBlockStyle}"/>
+            <TextBlock Text="📋 通知历史" Style="{StaticResource SubtitleTextBlockStyle}"/>
             <TextBlock x:Name="CountText" Text="(0)" VerticalAlignment="Center"
                        Style="{StaticResource CaptionTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
         </StackPanel>
 
         <!-- List -->
-        <ListView x:Name="NotificationList" Grid.Row="1" 
+        <ListView x:Name="NotificationList" Grid.Row="1"
                   SelectionMode="Single"
                   ItemClick="OnItemClick"
                   IsItemClickEnabled="True">
@@ -43,22 +43,22 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Title}" 
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Title}"
                                    FontWeight="SemiBold"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TimeAgo}"
                                    Style="{StaticResource CaptionTextBlockStyle}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                        
+
                         <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Message}"
                                    TextWrapping="Wrap" MaxLines="2"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                        
-                        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" 
+
+                        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal"
                                     Spacing="8" Margin="0,4,0,0">
                             <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                                     CornerRadius="2" Padding="4,2">
-                                <TextBlock Text="{Binding Category}" 
+                                <TextBlock Text="{Binding Category}"
                                            Style="{StaticResource CaptionTextBlockStyle}"/>
                             </Border>
                         </StackPanel>
@@ -68,21 +68,20 @@
         </ListView>
 
         <!-- Empty state -->
-        <StackPanel x:Name="EmptyState" Grid.Row="1" 
+        <StackPanel x:Name="EmptyState" Grid.Row="1"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Visibility="Collapsed">
             <TextBlock Text="📭" FontSize="48" HorizontalAlignment="Center"/>
-            <TextBlock Text="No notifications yet" 
+            <TextBlock Text="暂无通知"
                        Style="{StaticResource BodyTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
         </StackPanel>
 
         <!-- Footer -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" 
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8"
                     HorizontalAlignment="Right" Margin="0,16,0,0">
-            <Button Content="Clear All" Click="OnClearAll"/>
-            <Button Content="Close" Click="OnClose"/>
+            <Button Content="清除全部" Click="OnClearAll"/>
+            <Button Content="关闭" Click="OnClose"/>
         </StackPanel>
     </Grid>
 </winex:WindowEx>
-

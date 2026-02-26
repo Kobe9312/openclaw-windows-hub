@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:winex="using:WinUIEx"
-    Title="Canvas"
+    Title="画布"
     Width="800" Height="600"
     MinWidth="300" MinHeight="200">
 
@@ -14,33 +14,33 @@
 
     <Grid>
         <!-- Loading indicator -->
-        <ProgressRing x:Name="LoadingRing" 
-                      IsActive="True" 
-                      HorizontalAlignment="Center" 
+        <ProgressRing x:Name="LoadingRing"
+                      IsActive="True"
+                      HorizontalAlignment="Center"
                       VerticalAlignment="Center"/>
-        
+
         <!-- WebView2 for canvas content -->
-        <WebView2 x:Name="CanvasWebView" 
+        <WebView2 x:Name="CanvasWebView"
                   Visibility="Collapsed"
                   DefaultBackgroundColor="Transparent"/>
-        
+
         <!-- Error panel -->
-        <StackPanel x:Name="ErrorPanel" 
+        <StackPanel x:Name="ErrorPanel"
                     Visibility="Collapsed"
-                    HorizontalAlignment="Center" 
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Spacing="16"
                     Padding="32">
-            <TextBlock Text="❌ Canvas Error" 
-                       FontSize="18" 
+            <TextBlock Text="❌ 画布错误"
+                       FontSize="18"
                        FontWeight="SemiBold"
                        HorizontalAlignment="Center"/>
-            <TextBlock x:Name="ErrorText" 
-                       TextWrapping="Wrap" 
+            <TextBlock x:Name="ErrorText"
+                       TextWrapping="Wrap"
                        MaxWidth="400"
                        HorizontalAlignment="Center"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-            <Button Content="Retry" 
+            <Button Content="重试"
                     HorizontalAlignment="Center"
                     Click="OnRetryClick"/>
         </StackPanel>

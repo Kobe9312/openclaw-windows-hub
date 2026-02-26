@@ -748,7 +748,7 @@ public partial class App : Application
             ConnectionStatus.Error => "❌",
             _ => "⚪"
         };
-        menu.AddMenuItem($"Status: {_currentStatus}", statusIcon, "status");
+        menu.AddMenuItem($"状态: {_currentStatus}", statusIcon, "status");
 
         // Activity (if any)
         if (_currentActivity != null && _currentActivity.Kind != OpenClaw.Shared.ActivityKind.Idle)
@@ -763,11 +763,11 @@ public partial class App : Application
             if (string.IsNullOrWhiteSpace(usageText) || string.Equals(usageText, "No usage data", StringComparison.Ordinal))
             {
                 usageText = _lastUsageStatus?.Providers.Count > 0
-                    ? $"{_lastUsageStatus.Providers.Count} provider{(_lastUsageStatus.Providers.Count == 1 ? "" : "s")} active"
-                    : "No usage data";
+                    ? $"{_lastUsageStatus.Providers.Count} 个提供商活跃中"
+                    : "无使用数据";
             }
 
-            menu.AddMenuItem(usageText ?? "No usage data", "📊", "activity:usage");
+            menu.AddMenuItem(usageText ?? "无使用数据", "📊", "activity:usage");
 
             if (!string.IsNullOrWhiteSpace(_lastUsage?.ProviderSummary))
             {
@@ -804,24 +804,24 @@ public partial class App : Application
         if (_settings?.EnableNodeMode == true && _nodeService != null)
         {
             menu.AddSeparator();
-            menu.AddHeader("🔌 Node Mode");
+            menu.AddHeader("🔌 节点模式");
             
             if (_nodeService.IsPendingApproval)
             {
-                menu.AddMenuItem("⏳ Waiting for approval...", "", "", isEnabled: false, indent: true);
+                menu.AddMenuItem("⏳ 等待批准...", "", "", isEnabled: false, indent: true);
                 menu.AddMenuItem($"ID: {_nodeService.ShortDeviceId}...", "", "copydeviceid", indent: true);
             }
             else if (_nodeService.IsPaired && _nodeService.IsConnected)
             {
-                menu.AddMenuItem("✅ Paired & Connected", "", "", isEnabled: false, indent: true);
+                menu.AddMenuItem("✅ 已配对并连接", "", "", isEnabled: false, indent: true);
             }
             else if (_nodeService.IsConnected)
             {
-                menu.AddMenuItem("🔄 Connecting...", "", "", isEnabled: false, indent: true);
+                menu.AddMenuItem("🔄 连接中...", "", "", isEnabled: false, indent: true);
             }
             else
             {
-                menu.AddMenuItem("⚪ Disconnected", "", "", isEnabled: false, indent: true);
+                menu.AddMenuItem("⚪ 未连接", "", "", isEnabled: false, indent: true);
             }
         }
 
@@ -829,7 +829,7 @@ public partial class App : Application
         if (_lastSessions.Length > 0)
         {
             menu.AddSeparator();
-            menu.AddMenuItem($"Sessions ({_lastSessions.Length})", "💬", "activity:sessions");
+            menu.AddMenuItem($"会话 ({_lastSessions.Length})", "💬", "activity:sessions");
 
             var visibleSessions = _lastSessions.Take(3).ToArray();
             foreach (var session in visibleSessions)
@@ -864,29 +864,29 @@ public partial class App : Application
                 var currentVerbose = string.IsNullOrWhiteSpace(session.VerboseLevel) ? "off" : session.VerboseLevel;
                 var nextVerbose = string.Equals(currentVerbose, "on", StringComparison.OrdinalIgnoreCase) ? "off" : "on";
                 menu.AddMenuItem(
-                    $"↳ Thinking: {currentThinking} → high",
+                    $"↳ 思考模式: {currentThinking} → 高",
                     "🧠",
                     $"session-thinking|high|{session.Key}",
                     indent: true);
                 menu.AddMenuItem(
-                    $"↳ Verbose: {currentVerbose} → {nextVerbose}",
+                    $"↳ 详细模式: {currentVerbose} → {nextVerbose}",
                     "📝",
                     $"session-verbose|{nextVerbose}|{session.Key}",
                     indent: true);
-                menu.AddMenuItem("↳ Reset session", "♻️", $"session-reset|{session.Key}", indent: true);
-                menu.AddMenuItem("↳ Compact log", "🗜️", $"session-compact|{session.Key}", indent: true);
+                menu.AddMenuItem("↳ 重置会话", "♻️", $"session-reset|{session.Key}", indent: true);
+                menu.AddMenuItem("↳ 压缩日志", "🗜️", $"session-compact|{session.Key}", indent: true);
                 if (!session.IsMain && !string.Equals(session.Key, "global", StringComparison.OrdinalIgnoreCase))
-                    menu.AddMenuItem("↳ Delete session", "🗑️", $"session-delete|{session.Key}", indent: true);
+                    menu.AddMenuItem("↳ 删除会话", "🗑️", $"session-delete|{session.Key}", indent: true);
             }
             if (_lastSessions.Length > visibleSessions.Length)
-                menu.AddMenuItem($"+{_lastSessions.Length - visibleSessions.Length} more...", "", "", isEnabled: false, indent: true);
+                menu.AddMenuItem($"+{_lastSessions.Length - visibleSessions.Length} 更多...", "", "", isEnabled: false, indent: true);
         }
 
         // Channels (if any)
         if (_lastChannels.Length > 0)
         {
             menu.AddSeparator();
-            menu.AddHeader("📡 Channels");
+            menu.AddHeader("📡 频道");
 
             foreach (var channel in _lastChannels)
             {
@@ -909,7 +909,7 @@ public partial class App : Application
         if (_lastNodes.Length > 0)
         {
             menu.AddSeparator();
-            menu.AddMenuItem($"Nodes ({_lastNodes.Length})", "🖥️", "activity:nodes");
+            menu.AddMenuItem($"节点 ({_lastNodes.Length})", "🖥️", "activity:nodes");
 
             var visibleNodes = _lastNodes.Take(3).ToArray();
             foreach (var node in visibleNodes)
@@ -920,9 +920,9 @@ public partial class App : Application
             }
 
             if (_lastNodes.Length > visibleNodes.Length)
-                menu.AddMenuItem($"+{_lastNodes.Length - visibleNodes.Length} more...", "", "", isEnabled: false, indent: true);
+                menu.AddMenuItem($"+{_lastNodes.Length - visibleNodes.Length} 更多...", "", "", isEnabled: false, indent: true);
 
-            menu.AddMenuItem("Copy node summary", "📋", "copynodesummary", indent: true);
+            menu.AddMenuItem("复制节点摘要", "📋", "copynodesummary", indent: true);
         }
 
         var recentActivity = GetRecentActivity(maxItems: 4);
@@ -930,7 +930,7 @@ public partial class App : Application
         {
             menu.AddSeparator();
             var totalActivity = ActivityStreamService.GetItems().Count;
-            menu.AddMenuItem($"Recent Activity ({totalActivity})", "⚡", "activity");
+            menu.AddMenuItem($"最近活动 ({totalActivity})", "⚡", "activity");
             foreach (var line in recentActivity)
             {
                 menu.AddMenuItem(TruncateMenuText(line, 94), "", "", isEnabled: false, indent: true);
@@ -940,24 +940,24 @@ public partial class App : Application
         menu.AddSeparator();
 
         // Actions
-        menu.AddMenuItem("Open Dashboard", "🌐", "dashboard");
-        menu.AddMenuItem("Open Web Chat", "💬", "webchat");
-        menu.AddMenuItem("Quick Send...", "📤", "quicksend");
-        menu.AddMenuItem("Activity Stream...", "⚡", "activity");
-        menu.AddMenuItem("Notification History...", "📋", "history");
-        menu.AddMenuItem("Run Health Check", "🔄", "healthcheck");
+        menu.AddMenuItem("打开仪表板", "🌐", "dashboard");
+        menu.AddMenuItem("打开 Web 聊天", "💬", "webchat");
+        menu.AddMenuItem("快速发送...", "📤", "quicksend");
+        menu.AddMenuItem("活动流...", "⚡", "activity");
+        menu.AddMenuItem("通知历史...", "📋", "history");
+        menu.AddMenuItem("运行健康检查", "🔄", "healthcheck");
 
         menu.AddSeparator();
 
         // Settings
-        menu.AddMenuItem("Settings...", "⚙️", "settings");
-        var autoStartText = (_settings?.AutoStart ?? false) ? "Auto-start ✓" : "Auto-start";
+        menu.AddMenuItem("设置...", "⚙️", "settings");
+        var autoStartText = (_settings?.AutoStart ?? false) ? "开机自启动 ✓" : "开机自启动";
         menu.AddMenuItem(autoStartText, "🚀", "autostart");
 
         menu.AddSeparator();
 
-        menu.AddMenuItem("Open Log File", "📄", "log");
-        menu.AddMenuItem("Exit", "❌", "exit");
+        menu.AddMenuItem("打开日志文件", "📄", "log");
+        menu.AddMenuItem("退出", "❌", "exit");
     }
 
     // Keep the old MenuFlyout method for reference but it won't be used
